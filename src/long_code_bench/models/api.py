@@ -52,12 +52,25 @@ class APIModel(Model):
             raise ValueError(f"Unsupported model type: {self.model_type}")
 
     def _generate_openai(self, prompt: str, max_length: int) -> str:
-        response = openai.Completion.create(
-            model=self.model_version,
-            prompt=prompt,
-            max_tokens=max_length if max_length > 0 else None,
-        )
-        return response['choices'][0]['text']
+        # Determine if the model is a chat model
+        is_chat_model = "gpt-3.5-turbo" in self.model_version or "gpt-4" in self.model_version
+        
+        if is_chat_model:
+            # Use ChatCompletion for chat models like gpt-3.5-turbo or gpt-4
+            response = openai.ChatCompletion.create(
+                model=self.model_version,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_length if max_length > 0 else None,
+            )
+            return response['choices'][0]['message']['content']
+        else:
+            # Use Completion for non-chat models
+            response = openai.Completion.create(
+                model=self.model_version,
+                prompt=prompt,
+                max_tokens=max_length if max_length > 0 else None,
+            )
+            return response['choices'][0]['text']
 
     def _generate_anthropic(self, prompt: str, max_length: int) -> str:
         response = self.client.completions.create(

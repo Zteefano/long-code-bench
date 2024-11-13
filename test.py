@@ -13,10 +13,10 @@ prompt = "Explain the significance of the Renaissance period."
 model_type = "llama"  #"anthropic" "llama" "openai"
 
 # For OpenAI and Anthropic models, specify the model version
-model_version = "gpt-3.5-turbo" if model_type == "openai" else "claude-2"  # "gpt-4" "claude-2"
+model_version = "gpt-4" if model_type == "openai" else "claude-2"  # "gpt-4" "claude-2" "gpt-3.5-turbo"
 
 # Specify the Hugging Face path for the desired LLaMA model
-hf_path = "meta-llama/Llama-2-7b-hf"  # "meta-llama/Llama-2-13b-hf"
+hf_path = "meta-llama/Llama-2-13b-hf"  # "meta-llama/Llama-2-13b-hf" "meta-llama/Llama-2-7b-hf"
 
 if model_type in ["openai", "anthropic"]:
     # Get the API key

@@ -2,10 +2,6 @@ from src.long_code_bench.models.base import Model
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
-from src.long_code_bench.models.base import Model
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
-
 class OpenSourceModel(Model):
     """Class for all open-source models.
 
@@ -19,14 +15,13 @@ class OpenSourceModel(Model):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         
         # Load tokenizer and model with optional token
-        self.tokenizer = AutoTokenizer.from_pretrained(hf_path, use_auth_token=token)
+        self.tokenizer = AutoTokenizer.from_pretrained(hf_path, token=token)
         self.model = AutoModelForCausalLM.from_pretrained(
             hf_path,
-            torch_dtype=torch.float16,
-            device_map="auto",
+            torch_dtype=torch.float32,
+            device_map="auto",  # Distributes model across multiple GPUs if available
             token=token 
         )
-        self.model.to(self.device)  # Move model to the appropriate device
 
     def generate(self, prompt: str, max_length: int = -1) -> str:
         """Generate text given a prompt.
@@ -41,20 +36,21 @@ class OpenSourceModel(Model):
             str: The generated text.
         """
         # Encode the prompt
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)  # Ensures inputs are on the model's device
 
         # Generate output
         output = self.model.generate(
             inputs["input_ids"],
             max_length=max_length if max_length > 0 else self.model.config.max_length,
-            no_repeat_ngram_size=2,  # Optional: Avoid repeating n-grams
-            do_sample=True,          # Optional: Sampling for more varied text
-            top_k=50,                # Optional: Sampling from top-k tokens
-            top_p=0.95               # Optional: Nucleus sampling
+            temperature=0.7,  # Controls randomness, lower values make it more deterministic
+            top_k=50,         # Consider sampling from top-k tokens
+            top_p=0.9,        # Consider sampling from top-p nucleus
+            repetition_penalty=1.2,  # Penalizes repetition in generation
         )
 
         # Decode and return the generated text
-        generated_text = self.tokenizer.decode(output[0], skip_special_tokens=True)
+        generated_text = self.tokenizer.decode(output[0], skip_special_tokens=True, clean_up_tokenization_spaces=True)
+
         return generated_text
 
     @property
