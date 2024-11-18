@@ -2,7 +2,8 @@
 dependencies = [
     "datasets>=3.1.0,<4",
     "transformers>=4.46.2,<5", 
-    "flash-attn>=2.7.0.post2,<3"
+    "flash-attn>=2.7.0.post2,<3", 
+    "pyserini>=0.43.0,<0.44"
 ]
 description = "Add a short description here"
 name = "long-code-bench"
@@ -28,6 +29,7 @@ swebench = { path = "src/swe_bench", editable = true, extras = ["inference"] }
 cuda = {version="*", channel="nvidia"}
 pytorch = {version="2.5.*", channel="pytorch"}
 pytorch-cuda = {version="12.1.*", channel="pytorch"}
+faiss-gpu = "1.8"
 ruff = ">=0.6.7,<0.7"
 setuptools = ">=75.3.0,<76"
 

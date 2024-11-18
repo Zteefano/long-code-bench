@@ -7,3 +7,7 @@ keys.json
 
 # Python files
 __pycache__
+
+# Data
+data/
+!src/long_code_bench/data

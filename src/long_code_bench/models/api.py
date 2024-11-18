@@ -13,14 +13,14 @@ class APIModel(Model):
 	as OpenAI's GPT and Anthropic's Claude.
 
 	Args:
-        model_type (str): The type of model (e.g., 'openai',
-            'anthropic').
-        model_version (str): The specific version of the model
-            (e.g., 'gpt-3.5-turbo', 'claude-2').
-        api_key (str): The API key for accessing the model's API.
+		model_type (str): The type of model (e.g., 'openai',
+			'anthropic').
+		model_version (str): The specific version of the model
+			(e.g., 'gpt-3.5-turbo', 'claude-2').
+		api_key (str): The API key for accessing the model's API.
 
 	Raises:
-        ValueError: If the API key is not provided.
+		ValueError: If the API key is not provided.
 	"""
 
 	def __init__(
@@ -48,14 +48,14 @@ class APIModel(Model):
 		"""Generate text given a prompt by making an API call.
 
 		Args:
-            prompt (str): The prompt to generate text from.
-            max_length (int): The maximum length of the generated text.
+			prompt (str): The prompt to generate text from.
+			max_length (int): The maximum length of the generated text.
 
 		Returns:
-            str: The generated text.
+			str: The generated text.
 
 		Raises:
-            ValueError: If the model type is not supported.
+			ValueError: If the model type is not supported.
 		"""
 		if self.model_type == "openai":
 			return self._generate_openai(prompt, max_length)
@@ -101,14 +101,14 @@ class APIModel(Model):
 		"""Returns a default model version for a given model type.
 
 		Args:
-            model_type (str): The type of model (e.g., 'openai',
-                'anthropic').
+			model_type (str): The type of model (e.g., 'openai',
+				'anthropic').
 
 		Returns:
-            str: The default model version.
+			str: The default model version.
 
 		Raises:
-            ValueError: If the model type is not supported.
+			ValueError: If the model type is not supported.
 		"""
 		if model_type == "openai":
 			return "gpt-3.5-turbo"
