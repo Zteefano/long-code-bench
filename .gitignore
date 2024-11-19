@@ -1,3 +1,6 @@
+# VS Code
+.vscode
+
 # pixi environments
 .pixi
 *.egg-info
