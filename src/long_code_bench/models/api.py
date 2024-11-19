@@ -18,13 +18,10 @@ class APIModel(Model):
 		model_version (str): The specific version of the model
 			(e.g., 'gpt-3.5-turbo', 'claude-2').
 		api_key (str): The API key for accessing the model's API.
-
-	Raises:
-		ValueError: If the API key is not provided.
 	"""
 
 	def __init__(
-		self, model_type: str, model_version: str = None, api_key: str = None
+		self, model_type: str, model_version: str, api_key: str
 	) -> None:
 		self.model_type = model_type.lower()
 		self.model_version = model_version or self.default_version(
@@ -34,11 +31,9 @@ class APIModel(Model):
 			f"{self.model_type.upper()}_API_KEY"
 		)
 
-		if not self.api_key:
-			raise ValueError("API key is required to use this model.")
-
+		self.client: openai.Client | anthropic.Client
 		if self.model_type == "openai":
-			openai.api_key = self.api_key
+			self.client = openai.OpenAI(api_key=self.api_key)
 		elif self.model_type == "anthropic":
 			self.client = anthropic.Client(api_key=self.api_key)
 		else:
@@ -65,6 +60,8 @@ class APIModel(Model):
 			raise ValueError(f"Unsupported model type: {self.model_type}")
 
 	def _generate_openai(self, prompt: str, max_length: int) -> str:
+		assert self.client is openai.OpenAI, "OpenAI client is not initialized"
+
 		# Determine if the model is a chat model
 		is_chat_model = (
 			"gpt-3.5-turbo" in self.model_version
@@ -73,15 +70,15 @@ class APIModel(Model):
 
 		if is_chat_model:
 			# Use ChatCompletion for chat models like gpt-4
-			response = openai.ChatCompletion.create(
-				model=self.model_version,
+			response = self.client.chat.completions.create(
 				messages=[{"role": "user", "content": prompt}],
-				max_tokens=max_length if max_length > 0 else None,
+				model=self.model_version,
+				max_length=max_length if max_length > 0 else None,
 			)
 			return response["choices"][0]["message"]["content"]
 		else:
 			# Use Completion for non-chat models
-			response = openai.Completion.create(
+			response = self.client.completions.create(
 				model=self.model_version,
 				prompt=prompt,
 				max_tokens=max_length if max_length > 0 else None,
@@ -89,6 +86,9 @@ class APIModel(Model):
 			return response["choices"][0]["text"]
 
 	def _generate_anthropic(self, prompt: str, max_length: int) -> str:
+		assert (
+			self.client is anthropic.Client
+		), "Anthropic client is not initialized"
 		response = self.client.completions.create(
 			model=self.model_version,
 			prompt=f"{anthropic.HUMAN_PROMPT} {prompt} {anthropic.AI_PROMPT}",

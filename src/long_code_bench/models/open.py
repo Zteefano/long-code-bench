@@ -1,3 +1,5 @@
+from typing import Optional
+
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -5,18 +7,18 @@ from src.long_code_bench.models.base import Model
 
 
 class OpenSourceModel(Model):
-	"""Class for all open-source models.
+	"""Class for all open-source models from the Hugging Face Hub.
 
 	Args:
 		hf_path (str): The model's path on the Hugging Face Hub.
-		token (str): Optional. Hugging Face API token for accessing
-			gated models.
+		token (Optional[str]): The token to use for the model. By
+			default, `None`.
 	"""
 
 	def __init__(
 		self,
 		hf_path: str,
-		token: str = None,
+		token: Optional[str] = None,
 	) -> None:
 		self.hf_path = hf_path
 		self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -25,7 +27,7 @@ class OpenSourceModel(Model):
 		self.tokenizer = AutoTokenizer.from_pretrained(hf_path, token=token)
 		self.model = AutoModelForCausalLM.from_pretrained(
 			hf_path,
-			device_map="auto",  # Multi-GPU, if available
+			device_map="auto",
 			token=token,
 		)
 

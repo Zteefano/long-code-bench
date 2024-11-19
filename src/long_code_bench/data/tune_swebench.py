@@ -52,11 +52,18 @@ def make_tunable_swebench(
 			for more information.
 		max_k (int): The maximum number of files to retrieve for each
 			problem statement.
+
+	Raises:
+		ValueError: If the dataset is not an instance of `DatasetDict`.
 	"""
+	data: dts.DatasetDict
 	if pathlib.Path(dataset).exists():
-		data = dts.load_from_disk(dataset)
+		res = dts.load_from_disk(dataset)
 	else:
-		data = dts.load_dataset(dataset)
+		res = dts.load_dataset(dataset)
+	if not isinstance(res, dts.DatasetDict):
+		raise ValueError("The dataset must be a DatasetDict.")
+	data = res
 
 	split_instances = {}
 	for split, k in tqdm(
@@ -65,7 +72,7 @@ def make_tunable_swebench(
 		desc="Retrieving files.",
 	):
 		split_instances[f"{split}-{k}"] = {
-			x["instance_id"]: deepcopy(x) for x in data[split]
+			x["instance_id"]: deepcopy(x) for x in data[split]  # type: ignore
 		}
 		add_text_inputs(
 			split_instances[f"{split}-{k}"],
@@ -100,8 +107,10 @@ def make_tunable_swebench(
 			desc=f"Processing {split} split.",
 		):
 			datum = extract_fields(
-				split_instances[f"{split}-{k}"][instance["instance_id"]]
+				split_instances[f"{split}-{k}"][instance["instance_id"]]  # type: ignore
 			)
+			if datum is None:
+				continue
 			datum["num_bm_files"] = k
 			for key in columns:
 				split_data[split][key].append(datum[key])
