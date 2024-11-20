@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 
 class Model(ABC):
@@ -10,17 +11,25 @@ class Model(ABC):
 	"""
 
 	@abstractmethod
-	def generate(self, prompt: str, max_length: int = -1) -> str:
+	def generate(
+		self,
+		prompt: str,
+		max_context_length: Optional[int] = None,
+		max_output_length: Optional[int] = None,
+	) -> str:
 		"""Generate text given a prompt.
 
 		Args:
-            prompt (str): The prompt to generate text from.
-            max_length (int): The maximum length of the generated text.
-                If `-1`, the model can generate text of any length. By
-                default, `-1`.
+			prompt (str): The prompt to generate text from.
+			max_context_length (Optional[int]): The maximum length of
+					the context to consider. If `None`, no maximum
+					length is enforced. By default, `None`.
+			max_output_length (Optional[int]): The maximum length of the
+					output text. If `None`, the model can generate text
+					of any length. By default, `None`.
 
 		Returns:
-            str: The generated text.
+			str: The generated text.
 		"""
 		raise NotImplementedError
 

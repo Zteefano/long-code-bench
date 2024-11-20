@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import anthropic
 import openai
@@ -39,12 +40,22 @@ class APIModel(Model):
 		else:
 			raise ValueError(f"Unsupported model type: {self.model_type}")
 
-	def generate(self, prompt: str, max_length: int = -1) -> str:
+	def generate(
+		self,
+		prompt: str,
+		max_context_length: Optional[int] = None,
+		max_output_length: Optional[int] = None,
+	) -> str:
 		"""Generate text given a prompt by making an API call.
 
 		Args:
 			prompt (str): The prompt to generate text from.
-			max_length (int): The maximum length of the generated text.
+			max_context_length (Optional[int]): The maximum length of
+				the context to consider. If `None`, no maximum length is
+				enforced. By default, `None`.
+			max_output_length (Optional[int]): The maximum length of the
+				output text. If `None`, the model can generate text of
+				any length. By default, `None`.
 
 		Returns:
 			str: The generated text.
@@ -53,13 +64,13 @@ class APIModel(Model):
 			ValueError: If the model type is not supported.
 		"""
 		if self.model_type == "openai":
-			return self._generate_openai(prompt, max_length)
+			return self._generate_openai(prompt, max_output_length)
 		elif self.model_type == "anthropic":
-			return self._generate_anthropic(prompt, max_length)
+			return self._generate_anthropic(prompt, max_output_length)
 		else:
 			raise ValueError(f"Unsupported model type: {self.model_type}")
 
-	def _generate_openai(self, prompt: str, max_length: int) -> str:
+	def _generate_openai(self, prompt: str, max_length: Optional[int]) -> str:
 		assert self.client is openai.OpenAI, "OpenAI client is not initialized"
 
 		# Determine if the model is a chat model
@@ -73,7 +84,7 @@ class APIModel(Model):
 			response = self.client.chat.completions.create(
 				messages=[{"role": "user", "content": prompt}],
 				model=self.model_version,
-				max_length=max_length if max_length > 0 else None,
+				max_length=max_length,
 			)
 			return response["choices"][0]["message"]["content"]
 		else:
@@ -81,18 +92,20 @@ class APIModel(Model):
 			response = self.client.completions.create(
 				model=self.model_version,
 				prompt=prompt,
-				max_tokens=max_length if max_length > 0 else None,
+				max_tokens=max_length,
 			)
 			return response["choices"][0]["text"]
 
-	def _generate_anthropic(self, prompt: str, max_length: int) -> str:
+	def _generate_anthropic(
+		self, prompt: str, max_length: Optional[int]
+	) -> str:
 		assert (
 			self.client is anthropic.Client
 		), "Anthropic client is not initialized"
 		response = self.client.completions.create(
 			model=self.model_version,
 			prompt=f"{anthropic.HUMAN_PROMPT} {prompt} {anthropic.AI_PROMPT}",
-			max_tokens_to_sample=max_length if max_length > 0 else 300,
+			max_tokens_to_sample=max_length if max_length else 300,
 		)
 		return response["completion"]
 

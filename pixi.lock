@@ -155,7 +155,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/packaging-24.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/python-3.12.7-hc5c86c4_0_cpython.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/python_abi-3.12-5_cp312.conda
-      - conda: https://conda.anaconda.org/pytorch/linux-64/pytorch-2.5.1-py3.12_cuda12.1_cudnn9.1.0_0.tar.bz2
+      - conda: https://conda.anaconda.org/pytorch/linux-64/pytorch-2.4.1-py3.12_cuda12.1_cudnn9.1.0_0.tar.bz2
       - conda: https://conda.anaconda.org/pytorch/linux-64/pytorch-cuda-12.1-ha16c6d3_6.tar.bz2
       - conda: https://conda.anaconda.org/pytorch/noarch/pytorch-mutex-1.0-cuda.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pyyaml-6.0.2-py312h66e93f0_1.conda
@@ -166,7 +166,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/sysroot_linux-64-2.17-h4a8ded7_18.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/tbb-2021.13.0-h84d6215_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/tk-8.6.13-noxft_h4845f30_101.conda
-      - conda: https://conda.anaconda.org/pytorch/linux-64/torchtriton-3.1.0-py312.tar.bz2
+      - conda: https://conda.anaconda.org/pytorch/linux-64/torchtriton-3.0.0-py312.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.12.2-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2024b-hc8b5060_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/xz-5.2.6-h166bdaf_0.tar.bz2
@@ -181,6 +181,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/6a/21/5b6702a7f963e95456c0de2d495f67bf5fd62840ac655dc451586d23d39a/attrs-24.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b1/fe/e8c672695b37eecc5cbf43e1d0638d88d66ba3a44c4d321c796f4e59167f/beautifulsoup4-4.12.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/10/cb/f2ad4230dc2eb1a74edf38f1a38b9b52277f75bef262d8908e60d957e13c/blinker-1.9.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/3f/28/c21f5059837c6426c0e15eaf7ada62febe00ccc3f23a4f6b3b9029bbdf8a/causal_conv1d-1.4.0.tar.gz
       - pypi: https://files.pythonhosted.org/packages/12/90/3c9ff0512038035f59d279fddeb79f5f1eccd8859f06d6163c58798b9487/certifi-2024.8.30-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c5/55/51844dd50c4fc7a33b653bfaba4c2456f06955289ca770a5dbd5fd267374/cfgv-3.4.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/38/6f/f5fbc992a329ee4e0f288c1fe0e2ad9485ed064cac731ed2fe47dcc38cbf/chardet-5.2.0-py3-none-any.whl
@@ -214,10 +215,12 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/c0/5a/9cac0c82afec3d09ccd97c8b6502d48f165f9124db81b4bcb90b4af974ee/jedi-0.19.2-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fb/05/894144e4cbc1b9d46756db512268a90f84fc1d8bd28f1a17e0fef5aaf5c5/jiter-0.7.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/91/29/df4b9b42f2be0b623cbd5e2140cafcaa2bef0759a00b7b70104dcfe2fb51/joblib-1.4.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/f7/80/69bc14816fda4b30be3ac724e3efc713969dd545cd0bcb35abee6b8dfbf9/mamba_ssm-2.2.2.tar.gz
       - pypi: https://files.pythonhosted.org/packages/42/d7/1ec15b46af6af88f19b8e5ffea08fa375d433c998b8a7639e76935c14f1f/markdown_it_py-3.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d3/c8/529101d7176fe7dfe1d99604e48d69c5dfdcadb4f06561f465c8ef12b4df/multidict-6.1.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/0a/7d/a988f258104dcd2ccf1ed40fdc97e26c4ac351eeaf81d76e266c52d84e2f/multiprocess-0.70.16-py312-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6d/92/8d7aebd4430ab5ff65df2bfee6d5745f95c004284db2d8ca76dcbfd9de47/ninja-1.11.1.1-py2.py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/d2/1d/1b658dbd2b9fa9c4c9f32accbfc0205d532c8c6194dc0f2a4c0428e7128a/nodeenv-1.9.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ba/db/7e65fcf45f5485193158999c194470f40be4bb6c82ec7e70401f78220dec/onnxruntime-1.20.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/c7/d8/3e4cf8a5f544bef575d3502fedd81a15e317f591022de940647bdd0cc017/openai-1.54.4-py3-none-any.whl
@@ -627,6 +630,16 @@ packages:
   purls: []
   size: 159003
   timestamp: 1725018903918
+- kind: pypi
+  name: causal-conv1d
+  version: 1.4.0
+  url: https://files.pythonhosted.org/packages/3f/28/c21f5059837c6426c0e15eaf7ada62febe00ccc3f23a4f6b3b9029bbdf8a/causal_conv1d-1.4.0.tar.gz
+  sha256: e741fe453d708bc19be1ed71ff628cb2ed1a4b1be0e4e2fa574d09ce9a4970c3
+  requires_dist:
+  - torch
+  - packaging
+  - ninja
+  requires_python: '>=3.8'
 - kind: pypi
   name: certifi
   version: 2024.8.30
@@ -3290,14 +3303,29 @@ packages:
   name: long-code-bench
   version: 0.1.0
   path: .
-  sha256: 541311661d523a6ec2795d719f123ce596cc048798db8a787ea998adeb3decf0
+  sha256: c92736c3466f3b01154ed82e5de2dccacf363d133229df6be797789fe47fdd7d
   requires_dist:
   - datasets>=3.1.0,<4
   - transformers>=4.46.2,<5
   - flash-attn>=2.7.0.post2,<3
   - pyserini>=0.43.0,<0.44
+  - causal-conv1d>=1.4
+  - mamba-ssm>=2.2,<3
   requires_python: '>=3.11'
   editable: true
+- kind: pypi
+  name: mamba-ssm
+  version: 2.2.2
+  url: https://files.pythonhosted.org/packages/f7/80/69bc14816fda4b30be3ac724e3efc713969dd545cd0bcb35abee6b8dfbf9/mamba_ssm-2.2.2.tar.gz
+  sha256: 009de2d74decd847d463ae9cdbc1f9419f454ca6bf9beab36ed5243f01ea44d5
+  requires_dist:
+  - torch
+  - packaging
+  - ninja
+  - einops
+  - triton
+  - transformers
+  requires_python: '>=3.8'
 - kind: pypi
   name: markdown-it-py
   version: 3.0.0
@@ -3516,6 +3544,20 @@ packages:
   - pkg:pypi/networkx?source=hash-mapping
   size: 1198024
   timestamp: 1730311574645
+- kind: pypi
+  name: ninja
+  version: 1.11.1.1
+  url: https://files.pythonhosted.org/packages/6d/92/8d7aebd4430ab5ff65df2bfee6d5745f95c004284db2d8ca76dcbfd9de47/ninja-1.11.1.1-py2.py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl
+  sha256: 84502ec98f02a037a169c4b0d5d86075eaf6afc55e1879003d6cab51ced2ea4b
+  requires_dist:
+  - codecov>=2.0.5 ; extra == 'test'
+  - coverage>=4.2 ; extra == 'test'
+  - flake8>=3.0.4 ; extra == 'test'
+  - pytest>=4.5.0 ; extra == 'test'
+  - pytest-cov>=2.7.1 ; extra == 'test'
+  - pytest-runner>=5.1 ; extra == 'test'
+  - pytest-virtualenv>=1.7.0 ; extra == 'test'
+  - virtualenv>=15.0.3 ; extra == 'test'
 - kind: pypi
   name: nodeenv
   version: 1.9.1
@@ -4003,12 +4045,12 @@ packages:
   timestamp: 1723823388266
 - kind: conda
   name: pytorch
-  version: 2.5.1
+  version: 2.4.1
   build: py3.12_cuda12.1_cudnn9.1.0_0
   subdir: linux-64
-  url: https://conda.anaconda.org/pytorch/linux-64/pytorch-2.5.1-py3.12_cuda12.1_cudnn9.1.0_0.tar.bz2
-  sha256: 81e6e838e120c8f09acdf1d26837a4625eb2d6961f01bcee367277349704b433
-  md5: bed482b5cd96932b824d1cf712f93904
+  url: https://conda.anaconda.org/pytorch/linux-64/pytorch-2.4.1-py3.12_cuda12.1_cudnn9.1.0_0.tar.bz2
+  sha256: c0ebb32f488cb4e1d4e81936efbddb71ee25a4cf5ce2fe53337589aaf8afbb7c
+  md5: 20907572c058ce1b11c4f72568c49a5d
   depends:
   - blas * mkl
   - filelock
@@ -4021,7 +4063,7 @@ packages:
   - pytorch-mutex 1.0 cuda
   - pyyaml
   - sympy
-  - torchtriton 3.1.0
+  - torchtriton 3.0.0
   - typing_extensions
   constrains:
   - cpuonly <0
@@ -4029,8 +4071,8 @@ packages:
   license_family: BSD
   purls:
   - pkg:pypi/torch?source=hash-mapping
-  size: 1460215863
-  timestamp: 1729656120801
+  size: 1448234401
+  timestamp: 1724798024595
 - kind: conda
   name: pytorch-cuda
   version: '12.1'
@@ -4508,13 +4550,13 @@ packages:
   requires_python: '>=3.7'
 - kind: conda
   name: torchtriton
-  version: 3.1.0
+  version: 3.0.0
   build: py312
   build_number: 1
   subdir: linux-64
-  url: https://conda.anaconda.org/pytorch/linux-64/torchtriton-3.1.0-py312.tar.bz2
-  sha256: f0beb429b3834a3796626642829a7e4bb9d4fe6477c8dc614a55e5c4f15a6a05
-  md5: bb4b2d07cb6b9b476e78740c08ba69fe
+  url: https://conda.anaconda.org/pytorch/linux-64/torchtriton-3.0.0-py312.tar.bz2
+  sha256: 5b6fe1e0a065ad16342daa82faff86700a4b413f7b07090b106c61ae74ce508f
+  md5: e53c6345daef28009cd51187a5c5af73
   depends:
   - filelock
   - python >=3.12,<3.13.0a0
@@ -4522,8 +4564,8 @@ packages:
   license: MIT
   purls:
   - pkg:pypi/triton?source=hash-mapping
-  size: 244939186
-  timestamp: 1727971107041
+  size: 244858431
+  timestamp: 1721333095180
 - kind: pypi
   name: tqdm
   version: 4.67.0

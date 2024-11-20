@@ -31,29 +31,38 @@ class OpenSourceModel(Model):
 			token=token,
 		)
 
-	def generate(self, prompt: str, max_length: int = -1) -> str:
+	def generate(
+		self,
+		prompt: str,
+		max_context_length: Optional[int] = None,
+		max_output_length: Optional[int] = None,
+	) -> str:
 		"""Generate text given a prompt.
 
 		Args:
 			prompt (str): The prompt to generate text from.
-			max_length (int): The maximum length of the generated text.
-				If `-1`, the model can generate text of any length. By
-				default, `-1`.
+			max_context_length (Optional[int]): The maximum length of
+				the context to consider. If `None`, no maximum length is
+				enforced. By default, `None`.
+			max_output_length (Optional[int]): The maximum length of the
+				output text. If `None`, the model can generate text of
+				any length. By default, `None`.
 
 		Returns:
 			str: The generated text.
 		"""
 		# Encode the prompt
-		inputs = self.tokenizer(prompt, return_tensors="pt").to(
-			self.model.device
-		)  # Ensures inputs are on the model's device
+		inputs = self.tokenizer(
+			prompt,
+			max_length=max_context_length,
+			truncation=max_context_length is not None,
+			return_tensors="pt",
+		).to(self.model.device)  # Ensures inputs are on the model's device
 
 		# Generate output
 		output = self.model.generate(
 			inputs["input_ids"],
-			max_new_tokens=max_length
-			if max_length > 0
-			else self.model.config.max_length,
+			max_new_tokens=max_output_length,
 		)
 
 		# Decode and return the generated text

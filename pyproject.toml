@@ -3,7 +3,9 @@ dependencies = [
     "datasets>=3.1.0,<4",
     "transformers>=4.46.2,<5", 
     "flash-attn>=2.7.0.post2,<3", 
-    "pyserini>=0.43.0,<0.44"
+    "pyserini>=0.43.0,<0.44",
+    "causal-conv1d>=1.4",
+    "mamba-ssm>=2.2,<3"
 ]
 description = "Add a short description here"
 name = "long-code-bench"
@@ -19,7 +21,7 @@ channels = ["nvidia", "conda-forge", "pytorch"]
 platforms = ["linux-64"]
 
 [tool.pixi.pypi-options]
-no-build-isolation = ["flash_attn"]
+no-build-isolation = ["flash_attn", "causal-conv1d", "mamba-ssm"]
 
 [tool.pixi.pypi-dependencies]
 long_code_bench = { path = ".", editable = true }
@@ -27,7 +29,7 @@ swebench = { path = "src/swe_bench", editable = true, extras = ["inference"] }
 
 [tool.pixi.dependencies]
 cuda = {version="*", channel="nvidia"}
-pytorch = {version="2.5.*", channel="pytorch"}
+pytorch = {version="2.4.*", channel="pytorch"}
 pytorch-cuda = {version="12.1.*", channel="pytorch"}
 faiss-gpu = "1.8"
 ruff = ">=0.6.7,<0.7"
