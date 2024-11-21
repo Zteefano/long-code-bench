@@ -25,19 +25,20 @@ def _process_retrieval_file(
 	dataset: str, retrieval_file: str, splits: List[str]
 ) -> Tuple[str, Callable[[], None]]:
 	if not pathlib.Path(retrieval_file).exists():
+		tmp_dir = os.getenv("TMPDIR", "/tmp")
 		bm25_main(
 			dataset,
 			document_encoding_style="file_name_and_contents",
-			output_dir="/tmp",
+			output_dir=tmp_dir,
 			splits=splits,
 			shard_id=None,
 			num_shards=20,
 			leave_indexes=True,
 		)
-		dataset_name = os.path.basename(dataset)
+		data_name = os.path.basename(dataset)
 		return (
-			f"/tmp/{dataset_name}/file_name_and_contents.retrieval.jsonl",
-			lambda: shutil.rmtree(f"/tmp/{dataset_name}"),
+			f"/{tmp_dir}/{data_name}/file_name_and_contents.retrieval.jsonl",
+			lambda: shutil.rmtree(f"/{tmp_dir}/{data_name}"),
 		)
 	return retrieval_file, lambda: None
 

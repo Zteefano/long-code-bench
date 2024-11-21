@@ -35,6 +35,9 @@ faiss-gpu = "1.8"
 ruff = ">=0.6.7,<0.7"
 setuptools = ">=75.3.0,<76"
 
+[tool.pixi.tasks]
+make_swebench_tuned = "python src/long_code_bench/data/tune_swebench.py"
+
 [tool.ruff]
 line-length = 79
 
