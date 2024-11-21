@@ -1,18 +1,45 @@
 import itertools
+import json
+import os
 import pathlib
+import shutil
 from argparse import ArgumentParser
 from copy import deepcopy
-from typing import List, Literal
+from typing import Callable, List, Literal, Optional, Tuple
 
 import datasets as dts
 from tqdm.auto import tqdm
 
+from swe_bench.swebench.inference.make_datasets.bm25_retrieval import (
+	main as bm25_main,
+)
 from swe_bench.swebench.inference.make_datasets.create_instance import (
 	add_text_inputs,
 )
 from swe_bench.swebench.inference.make_datasets.create_text_dataset import (
 	extract_fields,
 )
+
+
+def _process_retrieval_file(
+	dataset: str, retrieval_file: str, splits: List[str]
+) -> Tuple[str, Callable[[], None]]:
+	if not pathlib.Path(retrieval_file).exists():
+		bm25_main(
+			dataset,
+			document_encoding_style="file_name_and_contents",
+			output_dir="/tmp",
+			splits=splits,
+			shard_id=None,
+			num_shards=20,
+			leave_indexes=True,
+		)
+		dataset_name = os.path.basename(dataset)
+		return (
+			f"/tmp/{dataset_name}/file_name_and_contents.retrieval.jsonl",
+			lambda: shutil.rmtree(f"/tmp/{dataset_name}"),
+		)
+	return retrieval_file, lambda: None
 
 
 def make_tunable_swebench(
@@ -22,6 +49,7 @@ def make_tunable_swebench(
 	retrieval_file: str,
 	prompt_style: Literal["style-2", "style-3", "full_file_gen"],
 	max_k: int,
+	hfhub_dataset: Optional[str] = None,
 ) -> None:
 	"""Create a tunable version of the SWE-Bench dataset.
 
@@ -45,13 +73,17 @@ def make_tunable_swebench(
 		splits (List[str]): The splits to use from the dataset.
 		output_dir (str): The directory where to store the dataset.
 		retrieval_file (str): The file containing results from the BM25
-			retrieval.
+			retrieval. If the file does not exist, it will be created by
+			running the BM25 retrieval.
 		prompt_style (Literal["style-2", "style-3", "full_file_gen"]):
 			The style of prompt to generate for the dataset. Refer to
 			[this README](https://github.com/princeton-nlp/SWE-bench/blob/main/swebench/inference/make_datasets/README.md)
 			for more information.
 		max_k (int): The maximum number of files to retrieve for each
 			problem statement.
+		hfhub_dataset (Optional[str]): The name of the dataset to push
+			to the Hugging Face Hub. If `None`, the dataset will not be
+			pushed to the Hub.
 
 	Raises:
 		ValueError: If the dataset is not an instance of `DatasetDict`.
@@ -65,6 +97,10 @@ def make_tunable_swebench(
 		raise ValueError("The dataset must be a DatasetDict.")
 	data = res
 
+	retrieval_file, handle_retr = _process_retrieval_file(
+		dataset, retrieval_file, splits
+	)
+
 	split_instances = {}
 	for split, k in tqdm(
 		itertools.product(splits, range(max_k)),
@@ -72,7 +108,8 @@ def make_tunable_swebench(
 		desc="Retrieving files.",
 	):
 		split_instances[f"{split}-{k}"] = {
-			x["instance_id"]: deepcopy(x) for x in data[split]  # type: ignore
+			x["instance_id"]: deepcopy(x)  # type: ignore
+			for x in data[split]
 		}
 		add_text_inputs(
 			split_instances[f"{split}-{k}"],
@@ -81,6 +118,8 @@ def make_tunable_swebench(
 			prompt_style,
 			file_source="oracle+bm25",
 		)
+
+	handle_retr()
 
 	columns = [
 		"instance_id",
@@ -119,6 +158,15 @@ def make_tunable_swebench(
 	data_final = dts.DatasetDict(split_data)
 	data_final.save_to_disk(output_dir)
 
+	if hfhub_dataset:
+		try:
+			token = json.load(open("keys.json"))["huggingface_write"]
+		except (FileNotFoundError, KeyError):
+			raise ValueError(
+				"The Hugging Face token is required to push to the hub."
+			) from None
+		data_final.push_to_hub(hfhub_dataset, token=token)
+
 
 if __name__ == "__main__":
 	parser = ArgumentParser(description=__doc__)
@@ -156,5 +204,11 @@ if __name__ == "__main__":
 		"--max_k",
 		type=int,
 		help="The maximum number of files to retrieve per problem statement.",
+	)
+	parser.add_argument(
+		"--hfhub_dataset",
+		type=str,
+		default=None,
+		help="Name of the dataset to push to the Hugging Face Hub.",
 	)
 	make_tunable_swebench(**vars(parser.parse_args()))

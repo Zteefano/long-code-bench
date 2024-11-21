@@ -4,12 +4,6 @@ Repository to develop a benchmkark to test Long Context Language Models (LCLMs) 
 
 ## Initialization
 
-After cloning the repository, make sure to also include all the git submodules with the following command:
-
-```
-git submodule update --init --recursive
-```
-
 The repository makes use of the [Pixi](https://prefix.dev/) package manager. The first step to run the code is thus to install pixi following the instructions in the link above. If on Linux or macOS, run the following command:
 
 ```
@@ -38,4 +32,7 @@ pixi r python src/long_code_bench/data/tune_swebench.py \
 	--retrieval_file [retrieval result file from running BM25] \
 	--prompt_style [prompt style] \
 	--max_k [maximum number of files to retrieve for each problem statement]
+	# --hfhub_dataset [path to the dataset in the Hugging Face Hub]
 ```
+
+The `--hfhub_dataset` parameter is optional and, if provided, it requires that the file `keys.json` has a field `huggingface_write` with an Hugging Face token that provides writing access to the specified path.
