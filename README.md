@@ -6,13 +6,13 @@ Repository to develop a benchmkark to test Long Context Language Models (LCLMs) 
 
 The repository makes use of the [Pixi](https://prefix.dev/) package manager. The first step to run the code is thus to install pixi following the instructions in the link above. If on Linux or macOS, run the following command:
 
-```
+```bash
 curl -fsSL https://pixi.sh/install.sh | bash
 ```
 
 Once the installation is completed (restarting the terminal may be needed for it to take effect), run the following command to intall all the necessary dependencies:
 
-```
+```bash
 pixi install
 ```
 

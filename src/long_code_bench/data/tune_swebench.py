@@ -33,12 +33,15 @@ def _process_retrieval_file(
 			splits=splits,
 			shard_id=None,
 			num_shards=20,
-			leave_indexes=True,
+			leave_indexes=False,
 		)
-		data_name = os.path.basename(dataset)
+		if pathlib.Path(dataset).exists():
+			data_name = os.path.basename(dataset)
+		else:
+			data_name = dataset.replace("/", "__")
 		return (
-			f"/{tmp_dir}/{data_name}/file_name_and_contents.retrieval.jsonl",
-			lambda: shutil.rmtree(f"/{tmp_dir}/{data_name}"),
+			f"{tmp_dir}/{data_name}/file_name_and_contents.retrieval.jsonl",
+			lambda: shutil.rmtree(f"{tmp_dir}/{data_name}"),
 		)
 	return retrieval_file, lambda: None
 
@@ -120,7 +123,7 @@ def make_tunable_swebench(
 			file_source="oracle+bm25",
 		)
 
-	handle_retr()
+	# handle_retr()
 
 	columns = [
 		"instance_id",
