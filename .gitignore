@@ -16,3 +16,6 @@ data/
 !src/long_code_bench/data
 results/
 logs/
+
+# Environment files
+.env

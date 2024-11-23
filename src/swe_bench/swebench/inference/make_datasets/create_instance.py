@@ -5,7 +5,6 @@ import traceback
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List, Optional
 
 import unidiff
 from tqdm.auto import tqdm

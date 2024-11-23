@@ -2,10 +2,9 @@ import itertools
 import json
 import os
 import pathlib
-import shutil
 from argparse import ArgumentParser
 from copy import deepcopy
-from typing import Callable, List, Literal, Optional, Tuple
+from typing import List, Literal, Optional
 
 import datasets as dts
 from tqdm.auto import tqdm
@@ -21,38 +20,48 @@ from swe_bench.swebench.inference.make_datasets.create_text_dataset import (
 )
 
 
-def _process_retrieval_file(
-	dataset: str, retrieval_file: str, splits: List[str]
-) -> Tuple[str, Callable[[], None]]:
-	if not pathlib.Path(retrieval_file).exists():
-		tmp_dir = os.getenv("TMPDIR", "/tmp")
-		bm25_main(
-			dataset,
-			document_encoding_style="file_name_and_contents",
-			output_dir=tmp_dir,
-			splits=splits,
-			shard_id=None,
-			num_shards=20,
-			leave_indexes=False,
-		)
-		if pathlib.Path(dataset).exists():
-			data_name = os.path.basename(dataset)
-		else:
-			data_name = dataset.replace("/", "__")
-		return (
-			f"{tmp_dir}/{data_name}/file_name_and_contents.retrieval.jsonl",
-			lambda: shutil.rmtree(f"{tmp_dir}/{data_name}"),
-		)
-	return retrieval_file, lambda: None
+def _process_retrieval_file(dataset: str, splits: List[str]) -> str:
+	tmp_dir = os.getenv("TMPDIR", "/tmp")
+	bm25_main(
+		dataset,
+		document_encoding_style="file_name_and_contents",
+		output_dir=tmp_dir,
+		splits=splits,
+		shard_id=None,
+		num_shards=20,
+		leave_indexes=False,
+	)
+	if pathlib.Path(dataset).exists():
+		data_name = os.path.basename(dataset)
+	else:
+		data_name = dataset.replace("/", "__")
+	return f"{tmp_dir}/{data_name}/file_name_and_contents.retrieval.jsonl"
+
+
+def _save_dataset(
+	data: dts.DatasetDict,
+	output_dir: Optional[str] = None,
+	hfhub_dataset: Optional[str] = None,
+) -> None:
+	if output_dir:
+		data.save_to_disk(output_dir)
+	if hfhub_dataset:
+		try:
+			token = json.load(open("keys.json"))["huggingface_write"]
+		except (FileNotFoundError, KeyError):
+			raise ValueError(
+				"The Hugging Face token is required to push to the hub."
+			) from None
+		data.push_to_hub(hfhub_dataset, token=token)
 
 
 def make_tunable_swebench(
 	dataset: str,
 	splits: List[str],
-	output_dir: str,
-	retrieval_file: str,
 	prompt_style: Literal["style-2", "style-3", "full_file_gen"],
 	max_k: int,
+	retrieval_file: Optional[str] = None,
+	output_dir: Optional[str] = None,
 	hfhub_dataset: Optional[str] = None,
 ) -> None:
 	"""Create a tunable version of the SWE-Bench dataset.
@@ -75,16 +84,18 @@ def make_tunable_swebench(
 		dataset (str): Either the name of the dataset from the Hugging
 			Face Hub or the path to the dataset on disk.
 		splits (List[str]): The splits to use from the dataset.
-		output_dir (str): The directory where to store the dataset.
-		retrieval_file (str): The file containing results from the BM25
-			retrieval. If the file does not exist, it will be created by
-			running the BM25 retrieval.
 		prompt_style (Literal["style-2", "style-3", "full_file_gen"]):
 			The style of prompt to generate for the dataset. Refer to
 			[this README](https://github.com/princeton-nlp/SWE-bench/blob/main/swebench/inference/make_datasets/README.md)
 			for more information.
 		max_k (int): The maximum number of files to retrieve for each
 			problem statement.
+		retrieval_file (Optional[str]): The path to the file where the
+			BM25 retrieval results are stored. If `None`, the retrieval
+			results will be computed. Defaults to `None`.
+		output_dir (Optional[str]): The path to the output directory. If
+			`None`, the dataset will not be saved to disk. Defaults to
+			`None`.
 		hfhub_dataset (Optional[str]): The name of the dataset to push
 			to the Hugging Face Hub. If `None`, the dataset will not be
 			pushed to the Hub.
@@ -101,15 +112,17 @@ def make_tunable_swebench(
 		raise ValueError("The dataset must be a DatasetDict.")
 	data = res
 
-	retrieval_file, handle_retr = _process_retrieval_file(
-		dataset, retrieval_file, splits
+	retrieval_file = (
+		_process_retrieval_file(dataset, splits)
+		if retrieval_file is None
+		else retrieval_file
 	)
 
 	split_instances = {}
 	for split, k in tqdm(
 		itertools.product(splits, range(max_k)),
 		total=len(splits) * max_k,
-		desc="Retrieving files.",
+		desc="Retrieving files",
 	):
 		split_instances[f"{split}-{k}"] = {
 			x["instance_id"]: deepcopy(x)  # type: ignore
@@ -122,8 +135,6 @@ def make_tunable_swebench(
 			prompt_style,
 			file_source="oracle+bm25",
 		)
-
-	# handle_retr()
 
 	columns = [
 		"instance_id",
@@ -160,16 +171,7 @@ def make_tunable_swebench(
 		split_data[split] = dts.Dataset.from_dict(split_data[split])
 
 	data_final = dts.DatasetDict(split_data)
-	data_final.save_to_disk(output_dir)
-
-	if hfhub_dataset:
-		try:
-			token = json.load(open("keys.json"))["huggingface_write"]
-		except (FileNotFoundError, KeyError):
-			raise ValueError(
-				"The Hugging Face token is required to push to the hub."
-			) from None
-		data_final.push_to_hub(hfhub_dataset, token=token)
+	_save_dataset(data_final, output_dir, hfhub_dataset)
 
 
 if __name__ == "__main__":
@@ -190,17 +192,19 @@ if __name__ == "__main__":
 	parser.add_argument(
 		"--output_dir",
 		type=str,
+		default=None,
 		help="Path to the output directory.",
 	)
 	parser.add_argument(
 		"--retrieval_file",
 		type=str,
+		default=None,
 		help="Path to the file where the BM25 retrieval results are stored.",
 	)
 	parser.add_argument(
 		"--prompt_style",
 		type=str,
-		default="style-3",
+		default="style-2",
 		choices=["style-2", "style-3", "full_file_gen"],
 		help="The style of prompt to generate for the dataset.",
 	)
