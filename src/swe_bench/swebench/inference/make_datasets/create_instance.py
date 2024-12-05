@@ -10,9 +10,14 @@ import unidiff
 from tqdm.auto import tqdm
 
 from swebench.inference.make_datasets.tokenize_dataset import TOKENIZER_FUNCS
-from swebench.inference.make_datasets.utils import AutoContextManager, ingest_directory_contents
+from swebench.inference.make_datasets.utils import (
+	AutoContextManager,
+	ingest_directory_contents,
+)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logging.basicConfig(
+	level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -112,190 +117,194 @@ def bresenham(x0, y0, x1, y1):
 
 
 def add_lines_list(content):
-    content_with_lines = list()
-    for ix, line in enumerate(content.split("\n"), start=1):
-        content_with_lines.append(f"{ix} {line}")
-    return content_with_lines
+	content_with_lines = list()
+	for ix, line in enumerate(content.split("\n"), start=1):
+		content_with_lines.append(f"{ix} {line}")
+	return content_with_lines
 
 
 def add_lines(content):
-    return "\n".join(add_lines_list(content))
+	return "\n".join(add_lines_list(content))
 
 
 def make_code_text(files_dict, add_line_numbers=True):
-    all_text = ""
-    for filename, contents in sorted(files_dict.items()):
-        all_text += f"[start of {filename}]\n"
-        if add_line_numbers:
-            all_text += add_lines(contents)
-        else:
-            all_text += contents
-        all_text += f"\n[end of {filename}]\n"
-    return all_text.strip("\n")
+	all_text = ""
+	for filename, contents in sorted(files_dict.items()):
+		all_text += f"[start of {filename}]\n"
+		if add_line_numbers:
+			all_text += add_lines(contents)
+		else:
+			all_text += contents
+		all_text += f"\n[end of {filename}]\n"
+	return all_text.strip("\n")
 
 
 def make_code_text_edits_only(files_dict, patch, add_line_numbers=True):
-    files = dict()
-    patch = unidiff.PatchSet(patch)
-    for patched_file in patch:
-        source_file = patched_file.source_file.split("a/", 1)[-1]
-        files[source_file] = list()
-        for hunk in patched_file:
-            start = hunk.source_start - 15
-            end = start + hunk.source_length + 15
-            files[source_file].append((start, end))
-    all_text = ""
-    for filename, content in files_dict.items():
-        all_text += f"[start of {filename}]\n"
-        content_with_lines = add_lines_list(content)
-        for start, end in files[filename]:
-            if start > 0:
-                all_text += "...\n"
-            all_text += "\n".join(content_with_lines[start:end])
-            all_text += "\n"
-            if end < len(content_with_lines):
-                all_text += "...\n"
-        all_text = all_text.strip("\n")
-        all_text += f"\n[end of {filename}]\n"
-    return all_text.strip("\n")
+	files = dict()
+	patch = unidiff.PatchSet(patch)
+	for patched_file in patch:
+		source_file = patched_file.source_file.split("a/", 1)[-1]
+		files[source_file] = list()
+		for hunk in patched_file:
+			start = hunk.source_start - 15
+			end = start + hunk.source_length + 15
+			files[source_file].append((start, end))
+	all_text = ""
+	for filename, content in files_dict.items():
+		all_text += f"[start of {filename}]\n"
+		content_with_lines = add_lines_list(content)
+		for start, end in files[filename]:
+			if start > 0:
+				all_text += "...\n"
+			all_text += "\n".join(content_with_lines[start:end])
+			all_text += "\n"
+			if end < len(content_with_lines):
+				all_text += "...\n"
+		all_text = all_text.strip("\n")
+		all_text += f"\n[end of {filename}]\n"
+	return all_text.strip("\n")
 
 
 def prompt_style_2(instance):
-    premise = "You will be provided with a partial code base and an issue statement explaining a problem to resolve."
-    readmes_text = make_code_text(instance["readmes"])
-    code_text = make_code_text(instance["file_contents"])
-    instructions = (
-        f"I need you to solve this issue by generating a single patch file that I can apply "
-        + f"directly to this repository using git apply. Please respond with a single patch "
-        + f"file in the following format."
-    )
-    problem_statement = instance["problem_statement"]
-    final_text = [
-        premise,
-        "<issue>",
-        problem_statement,
-        "</issue>",
-        "<code>",
-        readmes_text,
-        code_text,
-        "</code>",
-        instructions,
-        "<patch>",
-        PATCH_EXAMPLE,
-        "</patch>",
-    ]
-    final_text = "\n".join(final_text)
-    return final_text
+	premise = "You will be provided with a partial code base and an issue statement explaining a problem to resolve."
+	readmes_text = make_code_text(instance["readmes"])
+	code_text = make_code_text(instance["file_contents"])
+	instructions = (
+		f"I need you to solve this issue by generating a single patch file that I can apply "
+		+ f"directly to this repository using git apply. Please respond with a single patch "
+		+ f"file in the following format."
+	)
+	problem_statement = instance["problem_statement"]
+	final_text = [
+		premise,
+		"<issue>",
+		problem_statement,
+		"</issue>",
+		"<code>",
+		readmes_text,
+		code_text,
+		"</code>",
+		instructions,
+		"<patch>",
+		PATCH_EXAMPLE,
+		"</patch>",
+	]
+	final_text = "\n".join(final_text)
+	return final_text
 
 
 def prompt_style_2_edits_only(instance):
-    premise = "You will be provided with a partial code base and an issue statement explaining a problem to resolve."
-    readmes_text = make_code_text(instance["readmes"])
-    code_text = make_code_text_edits_only(instance["file_contents"], instance["patch"])
-    instructions = (
-        f"I need you to solve this issue by generating a single patch file that I can apply "
-        + f"directly to this repository using git apply. Please respond with a single patch "
-        + f"file in the following format."
-    )
-    problem_statement = instance["problem_statement"]
-    final_text = [
-        premise,
-        "<issue>",
-        problem_statement,
-        "</issue>",
-        "<code>",
-        readmes_text,
-        code_text,
-        "</code>",
-        instructions,
-        "<patch>",
-        PATCH_EXAMPLE,
-        "</patch>",
-    ]
-    final_text = "\n".join(final_text)
-    return final_text
+	premise = "You will be provided with a partial code base and an issue statement explaining a problem to resolve."
+	readmes_text = make_code_text(instance["readmes"])
+	code_text = make_code_text_edits_only(
+		instance["file_contents"], instance["patch"]
+	)
+	instructions = (
+		f"I need you to solve this issue by generating a single patch file that I can apply "
+		+ f"directly to this repository using git apply. Please respond with a single patch "
+		+ f"file in the following format."
+	)
+	problem_statement = instance["problem_statement"]
+	final_text = [
+		premise,
+		"<issue>",
+		problem_statement,
+		"</issue>",
+		"<code>",
+		readmes_text,
+		code_text,
+		"</code>",
+		instructions,
+		"<patch>",
+		PATCH_EXAMPLE,
+		"</patch>",
+	]
+	final_text = "\n".join(final_text)
+	return final_text
 
 
 def prompt_style_3(instance):
-    premise = "You will be provided with a partial code base and an issue statement explaining a problem to resolve."
-    readmes_text = make_code_text(instance["readmes"])
-    code_text = make_code_text(instance["file_contents"])
-    example_explanation = (
-        f"Here is an example of a patch file. It consists of changes to the code base. "
-        + f"It specifies the file names, the line numbers of each change, and the removed and added lines. "
-        + f"A single patch file can contain changes to multiple files."
-    )
-    final_instruction = (
-        f"I need you to solve the provided issue by generating a single patch file that I can apply "
-        + f"directly to this repository using git apply. Please respond with a single patch "
-        + f"file in the format shown above."
-    )
-    problem_statement = instance["problem_statement"]
-    final_text = [
-        premise,
-        "<issue>",
-        problem_statement,
-        "</issue>",
-        "",
-        "<code>",
-        readmes_text,
-        code_text,
-        "</code>",
-        "",
-        example_explanation,
-        "<patch>",
-        PATCH_EXAMPLE,
-        "</patch>",
-        "",
-        final_instruction,
-        "Respond below:",
-    ]
-    final_text = "\n".join(final_text)
-    return final_text
+	premise = "You will be provided with a partial code base and an issue statement explaining a problem to resolve."
+	readmes_text = make_code_text(instance["readmes"])
+	code_text = make_code_text(instance["file_contents"])
+	example_explanation = (
+		f"Here is an example of a patch file. It consists of changes to the code base. "
+		+ f"It specifies the file names, the line numbers of each change, and the removed and added lines. "
+		+ f"A single patch file can contain changes to multiple files."
+	)
+	final_instruction = (
+		f"I need you to solve the provided issue by generating a single patch file that I can apply "
+		+ f"directly to this repository using git apply. Please respond with a single patch "
+		+ f"file in the format shown above."
+	)
+	problem_statement = instance["problem_statement"]
+	final_text = [
+		premise,
+		"<issue>",
+		problem_statement,
+		"</issue>",
+		"",
+		"<code>",
+		readmes_text,
+		code_text,
+		"</code>",
+		"",
+		example_explanation,
+		"<patch>",
+		PATCH_EXAMPLE,
+		"</patch>",
+		"",
+		final_instruction,
+		"Respond below:",
+	]
+	final_text = "\n".join(final_text)
+	return final_text
 
 
 def full_file_gen(instance):
-    premise = "You will be provided with a partial code base and an issue statement explaining a problem to resolve."
-    readmes_text = make_code_text(instance["readmes"], add_line_numbers=False)
-    code_text = make_code_text(instance["file_contents"], add_line_numbers=False)
-    instructions = (
-        f"I need you to solve this issue by regenerating the full files in the code base that you would like to change. "
-        + f"You can change as many files as you like. "
-        + f"Please respond with a list of files and their revised contents in the following format."
-    )
-    problem_statement = instance["problem_statement"]
-    final_text = [
-        premise,
-        "<issue>",
-        problem_statement,
-        "</issue>",
-        "<code>",
-        readmes_text,
-        code_text,
-        "</code>",
-        instructions,
-        "<example>",
-        FULL_GENERATION_EXAMPLE,
-        "</example>",
-    ]
-    final_text = "\n".join(final_text)
-    return final_text
+	premise = "You will be provided with a partial code base and an issue statement explaining a problem to resolve."
+	readmes_text = make_code_text(instance["readmes"], add_line_numbers=False)
+	code_text = make_code_text(
+		instance["file_contents"], add_line_numbers=False
+	)
+	instructions = (
+		f"I need you to solve this issue by regenerating the full files in the code base that you would like to change. "
+		+ f"You can change as many files as you like. "
+		+ f"Please respond with a list of files and their revised contents in the following format."
+	)
+	problem_statement = instance["problem_statement"]
+	final_text = [
+		premise,
+		"<issue>",
+		problem_statement,
+		"</issue>",
+		"<code>",
+		readmes_text,
+		code_text,
+		"</code>",
+		instructions,
+		"<example>",
+		FULL_GENERATION_EXAMPLE,
+		"</example>",
+	]
+	final_text = "\n".join(final_text)
+	return final_text
 
 
 def ingest_files(filenames):
-    files_dict = dict()
-    for filename in filenames:
-        with open(filename) as f:
-            content = f.read()
-        files_dict[filename] = content
-    return files_dict
+	files_dict = dict()
+	for filename in filenames:
+		with open(filename) as f:
+			content = f.read()
+		files_dict[filename] = content
+	return files_dict
 
 
 PROMPT_FUNCTIONS = {
-    "style-2": prompt_style_2,
-    "style-3": prompt_style_3,
-    "full_file_gen": full_file_gen,
-    "style-2-edits-only": prompt_style_2_edits_only,
+	"style-2": prompt_style_2,
+	"style-3": prompt_style_3,
+	"full_file_gen": full_file_gen,
+	"style-2-edits-only": prompt_style_2_edits_only,
 }
 
 
@@ -329,10 +338,12 @@ def add_retrieval_results(
 				oracle_files = get_oracle_filenames(instance)
 			else:
 				oracle_files = []
-			hits = list(filter(
-				lambda x: x["docid"] not in oracle_files,
-				retrieval_results[instance_id],
-			))
+			hits = list(
+				filter(
+					lambda x: x["docid"] not in oracle_files,
+					retrieval_results[instance_id],
+				)
+			)
 			instance["hits"] = hits[:k]
 		except KeyError:
 			logger.warning(
@@ -342,28 +353,28 @@ def add_retrieval_results(
 
 
 def get_oracle_filenames(instance):
-    """
-    Returns the filenames that are changed in the patch
-    """
-    source_files = {
-        patch_file.source_file.split("a/", 1)[-1]
-        for patch_file in unidiff.PatchSet(instance["patch"])
-    }
-    gold_docs = set()
-    for source_file in source_files:
-        gold_docs.add(source_file)
-    return gold_docs
+	"""
+	Returns the filenames that are changed in the patch
+	"""
+	source_files = {
+		patch_file.source_file.split("a/", 1)[-1]
+		for patch_file in unidiff.PatchSet(instance["patch"])
+	}
+	gold_docs = set()
+	for source_file in source_files:
+		gold_docs.add(source_file)
+	return gold_docs
 
 
 def add_text_inputs(
-    input_instances,
-    retrieval_file,
-    k,
-    prompt_style,
-    file_source,
-    max_context_len=None,
-    tokenizer_name=None,
-    verbose=False,
+	input_instances,
+	retrieval_file,
+	k,
+	prompt_style,
+	file_source,
+	max_context_len=None,
+	tokenizer_name=None,
+	verbose=False,
 ):
 	"""Adds text inputs context for prediction in-place.
 
@@ -424,6 +435,14 @@ def add_text_inputs(
 					elif file_source in {"all"}:
 						instance["file_contents"] = ingest_directory_contents(
 							cm.repo_path
+						)
+					elif file_source in {"oracle+random"}:
+						oracle_file_names = get_oracle_filenames(instance)
+						instance["file_contents"] = ingest_directory_contents(
+							cm.repo_path,
+							random=True,
+							max_files=k,
+							exclude=oracle_file_names,
 						)
 					elif file_source in {"oracle+bm25"}:
 						file_contents = get_oracle_filenames(instance) | set(

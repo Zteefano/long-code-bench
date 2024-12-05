@@ -27,12 +27,13 @@ To create a tunable version of a SWE-Bench dataset, run the following command:
 ```bash
 pixi r python src/long_code_bench/data/tune_swebench.py \
 	--dataset [dataset_name_or_local_path] \
-	--splits [splits to process] \
-	--output_dir [directory where to store the resulting dataset] \
-	--retrieval_file [retrieval result file from running BM25] \
-	--prompt_style [prompt style] \
-	--max_k [maximum number of files to retrieve for each problem statement]
+	--splits [splits_to_process] \
+	--output_dir [directory_store_dataset] \
+	--retrieval_file [retrieval_file_for_bm25] \
+	--prompt_style [prompt_style] \
+	--max_k [maximum_number_of_files]
+	--retrieval_type "bm25"  # Can be "random" instead
 	# --hfhub_dataset [path to the dataset in the Hugging Face Hub]
 ```
 
-The `--hfhub_dataset` parameter is optional and, if provided, it requires that the file `keys.json` has a field `huggingface_write` with an Hugging Face token that provides writing access to the specified path.
+The `--hfhub_dataset` parameter is optional and, if provided, it requires defining an environment variables `"HF_TOKEN_WRITE"` with an Hugging Face token that provides writing access to the specified path.

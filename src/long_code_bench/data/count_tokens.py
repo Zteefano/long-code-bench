@@ -1,19 +1,22 @@
-from typing import Optional
+from typing import Optional, TypeVar
 
 import datasets as dts
 import tiktoken
 
+T = TypeVar("T", dts.Dataset, dts.DatasetDict)
+
 
 def count_tokens(
-	dataset: dts.Dataset,
+	dataset: T,
 	num_workers: int = 1,
 	upload_to_hub: Optional[str] = None,
 	hf_token: Optional[str] = None,
-) -> dts.Dataset:
+) -> T:
 	"""Add a column to the dataset with context length in tokens.
 
 	Args:
-		dataset (dts.Dataset): The dataset to process.
+		dataset (T): The dataset to process. Can be either a `Dataset`
+			or a `DatasetDict`.
 		num_workers (int, optional): The number of workers to use.
 			Defaults to `1`.
 		upload_to_hub (Optional[str], optional): The name of the dataset
@@ -23,7 +26,7 @@ def count_tokens(
 			upload the dataset. Defaults to `None`.
 
 	Returns:
-		dts.Dataset: The dataset with the new column.
+		T: The dataset with the new column and same type as the input.
 	"""
 	if upload_to_hub is not None:
 		assert (

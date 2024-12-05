@@ -1,14 +1,16 @@
 import itertools
-import json
 import os
 import pathlib
+import random
 from argparse import ArgumentParser
 from copy import deepcopy
 from typing import List, Literal, Optional
 
 import datasets as dts
+from dotenv import load_dotenv
 from tqdm.auto import tqdm
 
+from long_code_bench.data.count_tokens import count_tokens
 from swe_bench.swebench.inference.make_datasets.bm25_retrieval import (
 	main as bm25_main,
 )
@@ -18,6 +20,8 @@ from swe_bench.swebench.inference.make_datasets.create_instance import (
 from swe_bench.swebench.inference.make_datasets.create_text_dataset import (
 	extract_fields,
 )
+
+load_dotenv()
 
 
 def _process_retrieval_file(dataset: str, splits: List[str]) -> str:
@@ -46,12 +50,11 @@ def _save_dataset(
 	if output_dir:
 		data.save_to_disk(output_dir)
 	if hfhub_dataset:
-		try:
-			token = json.load(open("keys.json"))["huggingface_write"]
-		except (FileNotFoundError, KeyError):
+		token = os.getenv("HF_TOKEN_WRITE")
+		if not token:
 			raise ValueError(
 				"The Hugging Face token is required to push to the hub."
-			) from None
+			)
 		data.push_to_hub(hfhub_dataset, token=token)
 
 
@@ -60,9 +63,11 @@ def make_tunable_swebench(
 	splits: List[str],
 	prompt_style: Literal["style-2", "style-3", "full_file_gen"],
 	max_k: int,
+	retrieval_type: Literal["bm25", "random"],
 	retrieval_file: Optional[str] = None,
 	output_dir: Optional[str] = None,
 	hfhub_dataset: Optional[str] = None,
+	num_workers: int = 1,
 ) -> None:
 	"""Create a tunable version of the SWE-Bench dataset.
 
@@ -90,6 +95,10 @@ def make_tunable_swebench(
 			for more information.
 		max_k (int): The maximum number of files to retrieve for each
 			problem statement.
+		retrieval_type (Literal["bm25", "random"]): The type of
+			retrieval strategy to use. If `bm25`, the BM25 retrieval
+			results will be computed. If `random`, random files will be
+			retrieved together with the oracle ones.
 		retrieval_file (Optional[str]): The path to the file where the
 			BM25 retrieval results are stored. If `None`, the retrieval
 			results will be computed. Defaults to `None`.
@@ -99,6 +108,8 @@ def make_tunable_swebench(
 		hfhub_dataset (Optional[str]): The name of the dataset to push
 			to the Hugging Face Hub. If `None`, the dataset will not be
 			pushed to the Hub.
+		num_workers (int): The number of workers to use when counting
+			the number of tokens for each instance. Defaults to `1`.
 
 	Raises:
 		ValueError: If the dataset is not an instance of `DatasetDict`.
@@ -114,7 +125,7 @@ def make_tunable_swebench(
 
 	retrieval_file = (
 		_process_retrieval_file(dataset, splits)
-		if retrieval_file is None
+		if retrieval_file is None and retrieval_type == "bm25"
 		else retrieval_file
 	)
 
@@ -133,12 +144,13 @@ def make_tunable_swebench(
 			retrieval_file,
 			k,
 			prompt_style,
-			file_source="oracle+bm25",
+			file_source=f"oracle+{retrieval_type}",
 		)
 
 	columns = [
 		"instance_id",
-		"num_bm_files",
+		"num_files",
+		"retrieval_strategy",
 		"text",
 		"repo",
 		"base_commit",
@@ -165,12 +177,14 @@ def make_tunable_swebench(
 			)
 			if datum is None:
 				continue
-			datum["num_bm_files"] = k
+			datum["num_files"] = k
+			datum["retrieval_strategy"] = retrieval_type
 			for key in columns:
 				split_data[split][key].append(datum[key])
 		split_data[split] = dts.Dataset.from_dict(split_data[split])
 
 	data_final = dts.DatasetDict(split_data)
+	data_final = count_tokens(data_final, num_workers=num_workers)
 	_save_dataset(data_final, output_dir, hfhub_dataset)
 
 
@@ -202,6 +216,13 @@ if __name__ == "__main__":
 		help="Path to the file where the BM25 retrieval results are stored.",
 	)
 	parser.add_argument(
+		"--retrieval_type",
+		type=str,
+		default="bm25",
+		choices=["bm25", "random"],
+		help="The type of retrieval strategy to use.",
+	)
+	parser.add_argument(
 		"--prompt_style",
 		type=str,
 		default="style-2",
@@ -219,4 +240,21 @@ if __name__ == "__main__":
 		default=None,
 		help="Name of the dataset to push to the Hugging Face Hub.",
 	)
-	make_tunable_swebench(**vars(parser.parse_args()))
+	parser.add_argument(
+		"--num_workers",
+		type=int,
+		default=1,
+		help="The number of workers to use when counting tokens per instance.",
+	)
+	parser.add_argument(
+		"--random_seed",
+		type=int,
+		default=18_249_170_682_302,
+		help="Random seed for reproducibility.",
+	)
+	args = parser.parse_args()
+
+	random.seed(args.random_seed)
+	make_tunable_swebench(
+		**{k: v for k, v in vars(args).items() if k != "random_seed"}
+	)
