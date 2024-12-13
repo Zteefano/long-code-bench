@@ -5,6 +5,7 @@ import datasets as dts
 from tqdm.auto import tqdm
 
 from src.long_code_bench.models import Model
+from torch.utils.data import DataLoader
 
 
 class DatasetsEvaluator:
@@ -44,6 +45,7 @@ class DatasetsEvaluator:
 		self.model = model
 		self.max_context_length = max_context_length
 		self.max_output_length = max_output_length
+		self.batch_size = 16
 
 		self.dataset = dataset
 		if isinstance(dataset, dts.DatasetDict) and splits is not None:
@@ -55,37 +57,43 @@ class DatasetsEvaluator:
 	def run(self) -> None:
 		"""Run inference on the dataset."""
 		open(self.results_file, "w").close()
-
+		print('Batch size:', self.batch_size)
 		bar = tqdm(total=self._len_dataset(), desc="Processing instances")
 		for instance in self._iterate_dataset():
 			self._process_instance(instance)
-			bar.update(1)
+			bar.update(len(instance["instance_id"]))
 		bar.close()
 
-	def _process_instance(self, instance: dict) -> None:
-		prompt = instance[self.prompt_feature]
-		generation = self.model.generate(
+	def _process_instance(self, batch: dict) -> None:
+		prompt = batch[self.prompt_feature]
+		
+		generation = self.model.generate_batch(
 			prompt,
 			max_context_length=self.max_context_length,
 			max_output_length=self.max_output_length,
 		)
-		to_write = {
-			"prompt": prompt,
-			"generation": generation,
-			"instance_id": instance["instance_id"],
-		}
+		
+		for i, (instance, generation) in enumerate(zip(batch["instance_id"], generation)):
+			to_write = {
+				"prompt": prompt[i],
+				"generation": generation,
+				"instance_id": instance,
+			}
 
-		with open(self.results_file, "a") as f:
-			f.write(json.dumps(to_write) + "\n")
+			with open(self.results_file, "a") as f:
+				f.write(json.dumps(to_write) + "\n")
 
 	def _iterate_dataset(self) -> Generator[dict, None, None]:
+		
 		if isinstance(self.dataset, dts.DatasetDict):
 			for split in self.dataset:
-				for instance in self.dataset[split]:
-					yield dict(instance)
+				dataloader = DataLoader(self.dataset[split], batch_size=self.batch_size)
+				for batch in dataloader:
+					yield batch #[dict(instance) for instance in batch]
 		elif isinstance(self.dataset, dts.Dataset):
-			for instance in self.dataset:
-				yield dict(instance)
+			dataloader = DataLoader(self.dataset, batch_size=self.batch_size)
+			for batch in dataloader:
+				yield [dict(instance) for instance in batch]
 
 	def _len_dataset(self) -> int:
 		if isinstance(self.dataset, dts.DatasetDict):

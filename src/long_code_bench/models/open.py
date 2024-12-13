@@ -4,8 +4,10 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from src.long_code_bench.models.base import Model
+import os
+from typing import List, Optional, Generator, Dict
 
-
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
 class OpenSourceModel(Model):
 	"""Class for all open-source models from the Hugging Face Hub.
 
@@ -24,12 +26,52 @@ class OpenSourceModel(Model):
 		self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
 		# Load tokenizer and model with optional token
-		self.tokenizer = AutoTokenizer.from_pretrained(hf_path, token=token)
+		#self.tokenizer = AutoTokenizer.from_pretrained(hf_path, token=token)
+		#my_path = '/leonardo/home/userexternal/asampier/IscrC_TfG/cache/cache/hub/models--ai21labs--Jamba-tiny-dev/snapshots/ed303361004ac875426a61675edecf8e9d976882'
+		self.tokenizer = AutoTokenizer.from_pretrained(hf_path, token=None, 
+														local_files_only=True,
+														device_map="auto")
 		self.model = AutoModelForCausalLM.from_pretrained(
-			hf_path,
+			hf_path, # hf_path,
 			device_map="auto",
-			token=token,
+			token=token, 
+			local_files_only=True,
 		)
+
+	def generate_batch(
+		self,
+		prompts: List[str],
+		max_context_length: Optional[int] = None,
+		max_output_length: Optional[int] = None,
+	) -> List[str]:
+		"""Generate text for a batch of prompts."""
+		# Tokenize
+		#print('Tokenizing...')
+		inputs = self.tokenizer(
+			prompts,
+			max_length=max_context_length,
+			truncation=max_context_length is not None,
+			padding=True,
+			return_tensors="pt",
+		).to(self.model.device)
+
+		# Generate
+		#print('Generating...')
+		outputs = self.model.generate(
+			inputs["input_ids"],
+			max_new_tokens=max_output_length,
+		)
+
+		#outputs = [output[0] for output in outputs]
+
+		# Decode
+		#print('Decoding...')
+		generated_texts = self.tokenizer.batch_decode(
+			outputs,
+			skip_special_tokens=True,
+			clean_up_tokenization_spaces=True,
+		)
+		return generated_texts
 
 	def generate(
 		self,
