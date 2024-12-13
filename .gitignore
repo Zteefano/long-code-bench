@@ -19,3 +19,13 @@ logs/
 
 # Environment files
 .env
+
+# ignore results folder
+
+causal-conv1d/
+mamba/
+
+requirements.txt
+
+eval.sh
+SWE_Eval.*
