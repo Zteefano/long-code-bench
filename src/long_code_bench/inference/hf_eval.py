@@ -2,10 +2,10 @@ import json
 from typing import Generator, List, Optional
 
 import datasets as dts
+from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
 from src.long_code_bench.models import Model
-from torch.utils.data import DataLoader
 
 
 class DatasetsEvaluator:
@@ -57,7 +57,7 @@ class DatasetsEvaluator:
 	def run(self) -> None:
 		"""Run inference on the dataset."""
 		open(self.results_file, "w").close()
-		print('Batch size:', self.batch_size)
+		print("Batch size:", self.batch_size)
 		bar = tqdm(total=self._len_dataset(), desc="Processing instances")
 		for instance in self._iterate_dataset():
 			self._process_instance(instance)
@@ -66,17 +66,19 @@ class DatasetsEvaluator:
 
 	def _process_instance(self, batch: dict) -> None:
 		prompt = batch[self.prompt_feature]
-		
+
 		generation = self.model.generate_batch(
 			prompt,
 			max_context_length=self.max_context_length,
 			max_output_length=self.max_output_length,
 		)
-		
-		for i, (instance, generation) in enumerate(zip(batch["instance_id"], generation)):
+
+		for i, (instance, gen) in enumerate(
+			zip(batch["instance_id"], generation, strict=False)
+		):
 			to_write = {
 				"prompt": prompt[i],
-				"generation": generation,
+				"generation": gen,
 				"instance_id": instance,
 			}
 
@@ -84,16 +86,17 @@ class DatasetsEvaluator:
 				f.write(json.dumps(to_write) + "\n")
 
 	def _iterate_dataset(self) -> Generator[dict, None, None]:
-		
 		if isinstance(self.dataset, dts.DatasetDict):
 			for split in self.dataset:
-				dataloader = DataLoader(self.dataset[split], batch_size=self.batch_size)
+				dataloader = DataLoader(
+					self.dataset[split], batch_size=self.batch_size  # type: ignore
+				)
 				for batch in dataloader:
-					yield batch #[dict(instance) for instance in batch]
+					yield batch
 		elif isinstance(self.dataset, dts.Dataset):
-			dataloader = DataLoader(self.dataset, batch_size=self.batch_size)
+			dataloader = DataLoader(self.dataset, batch_size=self.batch_size)  # type: ignore
 			for batch in dataloader:
-				yield [dict(instance) for instance in batch]
+				yield batch
 
 	def _len_dataset(self) -> int:
 		if isinstance(self.dataset, dts.DatasetDict):

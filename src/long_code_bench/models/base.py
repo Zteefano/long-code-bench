@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import List, Optional
 
 
 class Model(ABC):
@@ -30,6 +30,30 @@ class Model(ABC):
 
 		Returns:
 			str: The generated text.
+		"""
+		raise NotImplementedError
+
+	@abstractmethod
+	def generate_batch(
+		self,
+		prompts: List[str],
+		max_context_length: Optional[int] = None,
+		max_output_length: Optional[int] = None,
+	) -> List[str]:
+		"""Generate text for a batch of prompts.
+
+		Args:
+			prompts (List[str]): The list of prompts to generate text
+				from.
+			max_context_length (Optional[int]): The maximum length of
+				the context to consider. If `None`, no maximum length is
+				enforced. By default, `None`.
+			max_output_length (Optional[int]): The maximum length of the
+				output text. If `None`, the model can generate text of
+				any length. By default, `None`.
+
+		Returns:
+			List[str]: The list of generated texts.
 		"""
 		raise NotImplementedError
 

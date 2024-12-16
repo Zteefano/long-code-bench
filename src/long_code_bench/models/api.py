@@ -1,8 +1,8 @@
 import os
 from typing import Optional
 
-#import anthropic
-#import openai
+import anthropic
+import openai
 
 from src.long_code_bench.models.base import Model
 

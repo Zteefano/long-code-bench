@@ -3303,7 +3303,7 @@ packages:
   name: long-code-bench
   version: 0.1.0
   path: .
-  sha256: d1019a6586379b03d9cd4e665686a69a6d30bd55c4c975e8bcf5e1ea5bb60f99
+  sha256: dc58bd34749e9bee18635b45ef520df4c632dcf3fce0fcee9efe5e067da2da43
   requires_dist:
   - datasets>=3.1.0,<4
   - transformers>=4.46.2,<5
