@@ -519,6 +519,12 @@ def main(
         else:
             raise ValueError("Predictions path must be \"gold\", .json, or .jsonl")
     predictions = {pred[KEY_INSTANCE_ID]: pred for pred in predictions}
+    # Ensure "model_name_or_path" is in predictions
+    for pred in predictions.values():
+        if "model_name_or_path" not in pred:
+            pred["model_name_or_path"] = run_id
+        if "model_patch" not in pred:
+            pred["model_patch"] = pred["generation"]
 
     # get dataset from predictions
     dataset = get_dataset_from_preds(dataset_name, split, instance_ids, predictions, run_id)

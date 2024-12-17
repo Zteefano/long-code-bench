@@ -1,10 +1,15 @@
+import json
 import os
+import time
 from typing import List, Optional
 
 import anthropic
 import openai
+from dotenv import load_dotenv
 
 from src.long_code_bench.models.base import Model
+
+load_dotenv()
 
 
 class APIModel(Model):
@@ -80,6 +85,8 @@ class APIModel(Model):
 		prompts: List[str],
 		max_context_length: Optional[int] = None,
 		max_output_length: Optional[int] = None,
+		ids: Optional[List[str]] = None,
+		file_name: Optional[str] = None,
 	) -> List[str]:
 		"""Generate text for a batch of prompts.
 
@@ -92,11 +99,30 @@ class APIModel(Model):
 			max_output_length (Optional[int]): The maximum length of the
 				output text. If `None`, the model can generate text of
 				any length. By default, `None`.
+			ids (Optional[List[str]]): The list of IDs associated to the
+				prompts. Necessary to keep track of the generated text
+				associated with each prompt. By default, `None`.
+			file_name (Optional[str]): The file to store the generated
+				results from a queued batch generation. If `None`, a
+				temporary file is used that is then deleted. By default,
+				`None`.
 
 		Returns:
 			List[str]: The list of generated texts.
+
+		Raises:
+			ValueError: If the model type is not supported.
 		"""
-		raise NotImplementedError
+		assert ids is not None, "IDs must be provided for batch generation"
+
+		if self.model_type == "openai":
+			return self._generate_batch_openai(
+				prompts, ids, max_output_length, file_name=file_name
+			)
+		else:
+			raise ValueError(
+				"Batch generation is not supported for this model"
+			)
 
 	def _generate_openai(self, prompt: str, max_length: Optional[int]) -> str:
 		assert (
@@ -137,7 +163,82 @@ class APIModel(Model):
 			prompt=f"{anthropic.HUMAN_PROMPT} {prompt} {anthropic.AI_PROMPT}",
 			max_tokens_to_sample=max_length if max_length else 300,
 		)
-		return response["completion"]
+		return response.completion
+
+	def _generate_batch_openai(
+		self,
+		prompts: List[str],
+		ids: List[str],
+		max_length: Optional[int],
+		file_name: Optional[str] = None,
+	) -> List[str]:
+		assert (
+			type(self.client) is openai.OpenAI
+		), "OpenAI client is not initialized"
+
+		tmp_dir = os.getenv("TMPDIR", "/tmp")
+		temp_file_created = False
+		if file_name is None:
+			file_name = os.path.join(
+				tmp_dir, f"batch_file_{int(time.time())}.jsonl"
+			)
+			temp_file_created = True
+
+		with open(file_name, "w") as f:
+			for prompt, instance_id in zip(prompts, ids, strict=True):
+				task = {
+					"custom_id": f"task-{instance_id}",
+					"method": "POST",
+					"url": "/v1/chat/completions",
+					"body": {
+						"model": self.model_version,
+						"temperature": 0.1,
+						"messages": [
+							{"role": "user", "content": prompt},
+						],
+						"max_completion_tokens": max_length,
+					},
+				}
+				f.write(json.dumps(task) + "\n")
+
+		batch_file = self.client.files.create(
+			file=open(file_name, "rb"), purpose="batch"
+		)
+		batch_job = self.client.batches.create(
+			input_file_id=batch_file.id,
+			endpoint="/v1/chat/completions",
+			completion_window="24h",
+		)
+
+		while True:
+			job_status = self.client.batches.retrieve(batch_job.id)
+			if job_status.status == "completed":
+				break
+			time.sleep(180)
+
+		result_file_id = batch_job.output_file_id
+		if not result_file_id:
+			raise ValueError("Batch job failed to generate output")
+		result = self.client.files.content(result_file_id).content
+
+		result_file_name = os.path.join(tmp_dir, "batch_job_results.jsonl")
+		with open(result_file_name, "wb") as file:
+			file.write(result)
+
+		results = []
+		with open(result_file_name, "r") as file:
+			for line in file:
+				json_object = json.loads(line.strip())
+				results.append(
+					json_object["response"]["body"]["choices"][0]["message"][
+						"content"
+					]
+				)
+
+		if temp_file_created:
+			os.remove(file_name)
+
+		return results
 
 	@staticmethod
 	def default_version(model_type: str) -> str:

@@ -39,6 +39,8 @@ class Model(ABC):
 		prompts: List[str],
 		max_context_length: Optional[int] = None,
 		max_output_length: Optional[int] = None,
+		ids: Optional[List[str]] = None,
+		file_name: Optional[str] = None,
 	) -> List[str]:
 		"""Generate text for a batch of prompts.
 
@@ -51,6 +53,14 @@ class Model(ABC):
 			max_output_length (Optional[int]): The maximum length of the
 				output text. If `None`, the model can generate text of
 				any length. By default, `None`.
+			ids (Optional[List[str]]): The list of IDs associated to the
+				prompts. Relevant when the generation involves queueing
+				batched jobs for API models. By default, `None`.
+			file_name (Optional[str]): The file to store the generated
+				results from a queued batch generation. Relevant only
+				for API models that support batch generation. If `None`,
+				a temporary file is used that is then deleted. By
+				default, `None`.
 
 		Returns:
 			List[str]: The list of generated texts.

@@ -2,10 +2,13 @@ import json
 from typing import Generator, List, Optional
 
 import datasets as dts
+from dotenv import load_dotenv
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
 from src.long_code_bench.models import Model
+
+load_dotenv()
 
 
 class DatasetsEvaluator:
@@ -71,6 +74,54 @@ class DatasetsEvaluator:
 			self._process_instance(instance)
 			bar.update(len(instance["instance_id"]) if self.batch_size else 1)
 		bar.close()
+
+	def run_batch_queue(self, file_name: Optional[str] = None) -> None:
+		"""Run inference on the dataset using batch processing.
+
+		This is the version of `run` that queues completion
+		requests for each instance in the dataset to be completed
+		asynchronously on the respective provider's platform.
+
+		Args:
+			file_name (Optional[str], optional): The file to store the
+				requests to be processed. If `None`, a temporary file is
+				used. Defaults to `None`.
+		"""
+		open(self.results_file, "w").close()
+
+		tasks = {
+			"prompts": [],
+			"ids": [],
+			"instance_ids": [],
+		}
+		for idx, instance in enumerate(self._iterate_dataset()):
+			tasks["prompts"].append(instance[self.prompt_feature])
+			tasks["ids"].append(f"{instance['instance_id']}-{idx}")
+			tasks["instance_ids"].append(instance["instance_id"])
+
+		results = self.model.generate_batch(
+			tasks["prompts"],
+			max_context_length=self.max_context_length,
+			max_output_length=self.max_output_length,
+			ids=tasks["ids"],
+			file_name=file_name,
+		)
+
+		for result, prompt, id in zip(
+			results, tasks["prompts"], tasks["instance_ids"], strict=True
+		):
+			with open(self.results_file, "a") as f:
+				f.write(
+					json.dumps(
+						{
+							"prompt": prompt,
+							"generation": result,
+							"instance_id": id,
+						}
+					)
+					+ "\n"
+				)
+		raise NotImplementedError
 
 	def _process_instance(self, batch: dict) -> None:
 		prompt = batch[self.prompt_feature]
