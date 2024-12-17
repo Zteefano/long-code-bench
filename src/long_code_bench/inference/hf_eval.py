@@ -30,6 +30,9 @@ class DatasetsEvaluator:
 		max_output_length (Optional[int]): The maximum length of the
 			generated text. By default, `None`. If `None`, no maximum
 			length is enforced.
+		batch_size (Optional[int]): The batch size to use for inference.
+			By default, `16`. If `None`, the evalaution is not run in
+			batches.
 	"""
 
 	def __init__(
@@ -41,11 +44,12 @@ class DatasetsEvaluator:
 		splits: Optional[List[str]] = None,
 		max_context_length: Optional[int] = None,
 		max_output_length: Optional[int] = None,
+		batch_size: Optional[int] = 16,
 	) -> None:
 		self.model = model
 		self.max_context_length = max_context_length
 		self.max_output_length = max_output_length
-		self.batch_size = 16
+		self.batch_size = batch_size
 
 		self.dataset = dataset
 		if isinstance(dataset, dts.DatasetDict) and splits is not None:
@@ -57,24 +61,37 @@ class DatasetsEvaluator:
 	def run(self) -> None:
 		"""Run inference on the dataset."""
 		open(self.results_file, "w").close()
-		print("Batch size:", self.batch_size)
 		bar = tqdm(total=self._len_dataset(), desc="Processing instances")
-		for instance in self._iterate_dataset():
+		iterator = (
+			self._iterate_dataset_batch()
+			if self.batch_size
+			else self._iterate_dataset()
+		)
+		for instance in iterator:
 			self._process_instance(instance)
-			bar.update(len(instance["instance_id"]))
+			bar.update(len(instance["instance_id"]) if self.batch_size else 1)
 		bar.close()
 
 	def _process_instance(self, batch: dict) -> None:
 		prompt = batch[self.prompt_feature]
 
-		generation = self.model.generate_batch(
-			prompt,
-			max_context_length=self.max_context_length,
-			max_output_length=self.max_output_length,
-		)
+		if self.batch_size is None:
+			generation = self.model.generate(
+				prompt, self.max_context_length, self.max_output_length
+			)
+			prompt = [prompt]
+			generation = [generation]
+			ids = [batch["instance_id"]]
+		else:
+			generation = self.model.generate_batch(
+				prompt,
+				max_context_length=self.max_context_length,
+				max_output_length=self.max_output_length,
+			)
+			ids = batch["instance_id"]
 
 		for i, (instance, gen) in enumerate(
-			zip(batch["instance_id"], generation, strict=False)
+			zip(ids, generation, strict=False)
 		):
 			to_write = {
 				"prompt": prompt[i],
@@ -88,8 +105,18 @@ class DatasetsEvaluator:
 	def _iterate_dataset(self) -> Generator[dict, None, None]:
 		if isinstance(self.dataset, dts.DatasetDict):
 			for split in self.dataset:
+				for instance in self.dataset[split]:
+					yield dict(instance)
+		elif isinstance(self.dataset, dts.Dataset):
+			for instance in self.dataset:
+				yield dict(instance)
+
+	def _iterate_dataset_batch(self) -> Generator[dict, None, None]:
+		if isinstance(self.dataset, dts.DatasetDict):
+			for split in self.dataset:
 				dataloader = DataLoader(
-					self.dataset[split], batch_size=self.batch_size  # type: ignore
+					self.dataset[split],  # type: ignore
+					batch_size=self.batch_size,
 				)
 				for batch in dataloader:
 					yield batch

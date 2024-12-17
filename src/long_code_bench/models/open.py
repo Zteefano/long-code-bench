@@ -6,7 +6,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from src.long_code_bench.models.base import Model
 
-os.environ["TRANSFORMERS_OFFLINE"] = "1"
+# os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 
 class OpenSourceModel(Model):
@@ -27,13 +27,13 @@ class OpenSourceModel(Model):
 		self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
 		self.tokenizer = AutoTokenizer.from_pretrained(
-			hf_path, token=None, local_files_only=True, device_map="auto"
+			hf_path, token=None, local_files_only=False, device_map="auto"
 		)
 		self.model = AutoModelForCausalLM.from_pretrained(
 			hf_path,
 			device_map="auto",
 			token=token,
-			local_files_only=True,
+			local_files_only=False,
 		)
 
 	def generate_batch(
@@ -57,7 +57,6 @@ class OpenSourceModel(Model):
 		Returns:
 			List[str]: The list of generated texts.
 		"""
-		# Tokenize
 		inputs = self.tokenizer(
 			prompts,
 			max_length=max_context_length,
@@ -66,13 +65,11 @@ class OpenSourceModel(Model):
 			return_tensors="pt",
 		).to(self.model.device)
 
-		# Generate
 		outputs = self.model.generate(
 			inputs["input_ids"],
 			max_new_tokens=max_output_length,
 		)
 
-		# Decode
 		generated_texts = self.tokenizer.batch_decode(
 			outputs,
 			skip_special_tokens=True,
@@ -100,21 +97,18 @@ class OpenSourceModel(Model):
 		Returns:
 			str: The generated text.
 		"""
-		# Encode the prompt
 		inputs = self.tokenizer(
 			prompt,
 			max_length=max_context_length,
 			truncation=max_context_length is not None,
 			return_tensors="pt",
-		).to(self.model.device)  # Ensures inputs are on the model's device
+		).to(self.model.device)
 
-		# Generate output
 		output = self.model.generate(
 			inputs["input_ids"],
 			max_new_tokens=max_output_length,
 		)
 
-		# Decode and return the generated text
 		generated_text = self.tokenizer.decode(
 			output[0],
 			skip_special_tokens=True,

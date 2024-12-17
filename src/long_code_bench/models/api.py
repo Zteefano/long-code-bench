@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import List, Optional
 
 import anthropic
 import openai
@@ -18,11 +18,16 @@ class APIModel(Model):
 			'anthropic').
 		model_version (str): The specific version of the model
 			(e.g., 'gpt-3.5-turbo', 'claude-2').
-		api_key (str): The API key for accessing the model's API.
+		api_key (Optional[str]): The API key to use for the model. If
+			`None`, the API key is read from the environment variable
+			`{MODEL_TYPE}_API_KEY`. By default, `None`.
 	"""
 
 	def __init__(
-		self, model_type: str, model_version: str, api_key: str
+		self,
+		model_type: str,
+		model_version: str,
+		api_key: Optional[str] = None,
 	) -> None:
 		self.model_type = model_type.lower()
 		self.model_version = model_version or self.default_version(
@@ -70,8 +75,33 @@ class APIModel(Model):
 		else:
 			raise ValueError(f"Unsupported model type: {self.model_type}")
 
+	def generate_batch(
+		self,
+		prompts: List[str],
+		max_context_length: Optional[int] = None,
+		max_output_length: Optional[int] = None,
+	) -> List[str]:
+		"""Generate text for a batch of prompts.
+
+		Args:
+			prompts (List[str]): The list of prompts to generate text
+				from.
+			max_context_length (Optional[int]): The maximum length of
+				the context to consider. If `None`, no maximum length is
+				enforced. By default, `None`.
+			max_output_length (Optional[int]): The maximum length of the
+				output text. If `None`, the model can generate text of
+				any length. By default, `None`.
+
+		Returns:
+			List[str]: The list of generated texts.
+		"""
+		raise NotImplementedError
+
 	def _generate_openai(self, prompt: str, max_length: Optional[int]) -> str:
-		assert self.client is openai.OpenAI, "OpenAI client is not initialized"
+		assert (
+			type(self.client) is openai.OpenAI
+		), "OpenAI client is not initialized"
 
 		# Determine if the model is a chat model
 		is_chat_model = (
@@ -84,9 +114,9 @@ class APIModel(Model):
 			response = self.client.chat.completions.create(
 				messages=[{"role": "user", "content": prompt}],
 				model=self.model_version,
-				max_length=max_length,
+				max_tokens=max_length,
 			)
-			return response["choices"][0]["message"]["content"]
+			return response.choices[0].message.content or ""
 		else:
 			# Use Completion for non-chat models
 			response = self.client.completions.create(
@@ -94,13 +124,13 @@ class APIModel(Model):
 				prompt=prompt,
 				max_tokens=max_length,
 			)
-			return response["choices"][0]["text"]
+			return response.choices[0].text
 
 	def _generate_anthropic(
 		self, prompt: str, max_length: Optional[int]
 	) -> str:
 		assert (
-			self.client is anthropic.Client
+			type(self.client) is anthropic.Client
 		), "Anthropic client is not initialized"
 		response = self.client.completions.create(
 			model=self.model_version,
