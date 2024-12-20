@@ -1,9 +1,17 @@
-from typing import List, Optional
+import ast
+from typing import Any, List, Optional
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, PretrainedConfig
 
 from src.long_code_bench.models.base import Model
+
+
+def _convert_value(value: str) -> Any:  # noqa: ANN401
+	try:
+		return ast.literal_eval(value)
+	except (ValueError, SyntaxError):
+		return value
 
 
 class OpenSourceModel(Model):
@@ -15,6 +23,9 @@ class OpenSourceModel(Model):
 			default, `None`.
 		offline (bool): Whether to load the model and the tokenizer from
 			local files only. By default, `False`.
+		**kwargs: Additional keyword arguments to pass to the model.
+			These argument can provide additional configuration like
+			`attn_implementation`, or `torch_dtype`.
 	"""
 
 	def __init__(
@@ -22,6 +33,7 @@ class OpenSourceModel(Model):
 		hf_path: str,
 		token: Optional[str] = None,
 		offline: bool = False,
+		**kwargs: str,
 	) -> None:
 		self.hf_path = hf_path
 		self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -29,11 +41,18 @@ class OpenSourceModel(Model):
 		self.tokenizer = AutoTokenizer.from_pretrained(
 			hf_path, token=None, local_files_only=offline, device_map="auto"
 		)
+
+		model_kwargs = {
+			k: _convert_value(v)
+			for k, v in kwargs.items()
+			if k in PretrainedConfig.__init__.__code__.co_varnames
+		}
 		self.model = AutoModelForCausalLM.from_pretrained(
 			hf_path,
 			device_map="auto",
 			token=token,
 			local_files_only=offline,
+			**model_kwargs,
 		)
 
 	def generate_batch(

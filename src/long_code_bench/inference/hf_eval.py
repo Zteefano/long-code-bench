@@ -3,12 +3,23 @@ from typing import Generator, List, Optional
 
 import datasets as dts
 from dotenv import load_dotenv
-from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
 from src.long_code_bench.models import Model
 
 load_dotenv()
+
+
+def _iterate_dataset(
+	dataset: dts.Dataset, batch_size: Optional[int] = None
+) -> Generator[dict, None, None]:
+	if batch_size is None:
+		for instance in dataset:
+			yield dict(instance)
+	else:
+		len_dataset = len(dataset)
+		for i in range(0, len_dataset, batch_size):
+			yield dataset[i : min(i + batch_size, len_dataset)]
 
 
 class DatasetsEvaluator:
@@ -156,24 +167,21 @@ class DatasetsEvaluator:
 	def _iterate_dataset(self) -> Generator[dict, None, None]:
 		if isinstance(self.dataset, dts.DatasetDict):
 			for split in self.dataset:
-				for instance in self.dataset[split]:
-					yield dict(instance)
+				for instance in _iterate_dataset(self.dataset[split]):
+					yield instance
 		elif isinstance(self.dataset, dts.Dataset):
-			for instance in self.dataset:
-				yield dict(instance)
+			for instance in _iterate_dataset(self.dataset):
+				yield instance
 
 	def _iterate_dataset_batch(self) -> Generator[dict, None, None]:
 		if isinstance(self.dataset, dts.DatasetDict):
 			for split in self.dataset:
-				dataloader = DataLoader(
-					self.dataset[split],  # type: ignore
-					batch_size=self.batch_size,
-				)
-				for batch in dataloader:
+				for batch in _iterate_dataset(
+					self.dataset[split], self.batch_size
+				):
 					yield batch
 		elif isinstance(self.dataset, dts.Dataset):
-			dataloader = DataLoader(self.dataset, batch_size=self.batch_size)  # type: ignore
-			for batch in dataloader:
+			for batch in _iterate_dataset(self.dataset, self.batch_size):
 				yield batch
 
 	def _len_dataset(self) -> int:

@@ -261,6 +261,27 @@ class APIModel(Model):
 		else:
 			raise ValueError(f"Unsupported model type: {model_type}")
 
+	@staticmethod
+	def from_model_name(model_name: str) -> "APIModel":
+		"""Create an APIModel instance from a model name.
+
+		Args:
+			model_name (str): The model name. Currently supported ones
+				are 'gpt-4o', 'gpt-4o-mini', 'claude-3.5'.
+
+		Returns:
+			APIModel: The APIModel instance.
+
+		Raises:
+			ValueError: If the model name is not supported.
+		"""
+		if model_name in ["gpt-4o", "gpt-4o-mini"]:
+			return APIModel("openai", model_name)
+		elif model_name == "claude-3.5":
+			return APIModel("anthropic", "claude-3.5")
+		else:
+			raise ValueError(f"Unsupported model name: {model_name}")
+
 	@property
 	def name(self) -> str:
 		"""Name of the model, used for identification."""

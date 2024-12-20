@@ -6,6 +6,7 @@ dependencies = [
     "pyserini>=0.43.0,<0.44",
     "causal-conv1d>=1.4",
     "mamba-ssm>=2.2,<3",
+    "editdistance>=0.8.1,<0.9",
 ]
 description = "Add a short description here"
 name = "long-code-bench"
@@ -36,6 +37,7 @@ ruff = ">=0.6.7,<0.7"
 setuptools = ">=75.3.0,<76"
 
 [tool.pixi.tasks]
+eval = "python eval.py"
 make_swebench_tuned = "python src/long_code_bench/data/tune_swebench.py"
 harness = "python -m swebench.harness.run_evaluation"
 

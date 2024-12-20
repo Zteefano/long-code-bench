@@ -200,7 +200,7 @@ if __name__ == "__main__":
 	parser.add_argument(
 		"--splits",
 		nargs="+",
-		default=["train", "test"],
+		default=["dev", "test"],
 		help="Splits to use from the dataset.",
 	)
 	parser.add_argument(
