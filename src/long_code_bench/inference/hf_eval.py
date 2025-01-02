@@ -45,7 +45,7 @@ class DatasetsEvaluator:
 		self.model = model
 		self.max_context_length = max_context_length
 		self.max_output_length = max_output_length
-		self.batch_size = 16
+		self.batch_size = 1
 
 		self.dataset = dataset
 		if isinstance(dataset, dts.DatasetDict) and splits is not None:
@@ -82,6 +82,12 @@ class DatasetsEvaluator:
 
 			with open(self.results_file, "a") as f:
 				f.write(json.dumps(to_write) + "\n")
+		
+		# remove the batch from memory
+		del batch
+		del generation
+		del to_write
+		del prompt
 
 	def _iterate_dataset(self) -> Generator[dict, None, None]:
 		
@@ -93,7 +99,7 @@ class DatasetsEvaluator:
 		elif isinstance(self.dataset, dts.Dataset):
 			dataloader = DataLoader(self.dataset, batch_size=self.batch_size)
 			for batch in dataloader:
-				yield [dict(instance) for instance in batch]
+				yield batch #[dict(instance) for instance in batch]
 
 	def _len_dataset(self) -> int:
 		if isinstance(self.dataset, dts.DatasetDict):

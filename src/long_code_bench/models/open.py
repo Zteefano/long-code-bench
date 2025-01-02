@@ -1,13 +1,14 @@
 from typing import Optional
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 from src.long_code_bench.models.base import Model
 import os
 from typing import List, Optional, Generator, Dict
+from accelerate import Accelerator
 
-os.environ["TRANSFORMERS_OFFLINE"] = "1"
+#os.environ["TRANSFORMERS_OFFLINE"] = "1"
 class OpenSourceModel(Model):
 	"""Class for all open-source models from the Hugging Face Hub.
 
@@ -28,15 +29,29 @@ class OpenSourceModel(Model):
 		# Load tokenizer and model with optional token
 		#self.tokenizer = AutoTokenizer.from_pretrained(hf_path, token=token)
 		#my_path = '/leonardo/home/userexternal/asampier/IscrC_TfG/cache/cache/hub/models--ai21labs--Jamba-tiny-dev/snapshots/ed303361004ac875426a61675edecf8e9d976882'
-		self.tokenizer = AutoTokenizer.from_pretrained(hf_path, token=None, 
-														local_files_only=True,
-														device_map="auto")
+		self.tokenizer = AutoTokenizer.from_pretrained(hf_path, #token=token, 
+														#local_files_only=True,
+														)
+														#device_map='auto',
+														#max_memory=max_memory) # auto
+		
+		#quantization_config = BitsAndBytesConfig(load_in_8bit=True,
+        #                                 llm_int8_skip_modules=["mamba"])
+
 		self.model = AutoModelForCausalLM.from_pretrained(
-			hf_path, # hf_path,
-			device_map="auto",
-			token=token, 
-			local_files_only=True,
-		)
+			hf_path,
+			device_map='auto', # auto
+			torch_dtype=torch.float16,
+			#attn_implementation="flash_attention_2",
+			#max_memory=max_memory,
+			#token=token,
+			max_memory={f"{i}": "62GB" for i in range(torch.cuda.device_count())})
+			#quantization_config=quantization_config)
+			#local_files_only=True,)
+	
+		#print(f"Model loaded successfully on rank {rank}.")
+		
+	
 
 	def generate_batch(
 		self,
