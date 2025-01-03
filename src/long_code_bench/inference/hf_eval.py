@@ -54,14 +54,21 @@ class DatasetsEvaluator:
 		self.prompt_feature = prompt_feature
 		self.results_file = results_file
 
-	def run(self) -> None:
+		#self.local_rank = int(os.environ['LOCAL_RANK'])
+
+	def run(self, rank=0) -> None:
 		"""Run inference on the dataset."""
 		open(self.results_file, "w").close()
 		print('Batch size:', self.batch_size)
-		bar = tqdm(total=self._len_dataset(), desc="Processing instances")
+		#bar = tqdm(total=self._len_dataset(), desc="Processing instances")
+		len_dataset = self._len_dataset()
+		i = 1
 		for instance in self._iterate_dataset():
 			self._process_instance(instance)
-			bar.update(len(instance["instance_id"]))
+			if rank == 0:
+				print('Processed', i, 'out of', len_dataset)
+				i += 1
+			#bar.update(len(instance["instance_id"]))
 		bar.close()
 
 	def _process_instance(self, batch: dict) -> None:

@@ -2,11 +2,15 @@ from typing import Optional
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+from torch.distributed.fsdp.wrap import wrap
 
 from src.long_code_bench.models.base import Model
 import os
 from typing import List, Optional, Generator, Dict
-from accelerate import Accelerator
+from accelerate import FullyShardedDataParallelPlugin, Accelerator
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.distributed.fsdp.fully_sharded_data_parallel import FullOptimStateDictConfig, FullStateDictConfig
 
 #os.environ["TRANSFORMERS_OFFLINE"] = "1"
 class OpenSourceModel(Model):
@@ -22,9 +26,14 @@ class OpenSourceModel(Model):
 		self,
 		hf_path: str,
 		token: Optional[str] = None,
+		#local_rank: int = 0,
 	) -> None:
 		self.hf_path = hf_path
 		self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+
+
+		
 
 		# Load tokenizer and model with optional token
 		#self.tokenizer = AutoTokenizer.from_pretrained(hf_path, token=token)
@@ -41,15 +50,20 @@ class OpenSourceModel(Model):
 		self.model = AutoModelForCausalLM.from_pretrained(
 			hf_path,
 			device_map='auto', # auto
-			torch_dtype=torch.float16,
+			torch_dtype=torch.float16,)#.to(local_rank)
 			#attn_implementation="flash_attention_2",
 			#max_memory=max_memory,
 			#token=token,
-			max_memory={f"{i}": "62GB" for i in range(torch.cuda.device_count())})
+			#max_memory={f"{i}": "62GB" for i in range(torch.cuda.device_count())})
 			#quantization_config=quantization_config)
 			#local_files_only=True,)
+
+		#self.model = DDP(self.model, device_ids=[local_rank])
 	
 		#print(f"Model loaded successfully on rank {rank}.")
+
+		self.model = self.model#.cuda()
+		self.model = FSDP(self.model, auto_wrap_policy=None, mixed_precision=False)
 		
 	
 
