@@ -1,0 +1,3 @@
+_target_: src.long_code_bench.models.AnthropicModel
+model_version: claude-3-5-haiku-20241022
+max_window: 8_192
