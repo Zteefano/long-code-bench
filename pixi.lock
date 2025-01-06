@@ -4294,7 +4294,7 @@ packages:
 - pypi: .
   name: long-code-bench
   version: 0.1.0
-  sha256: f4c407981257bee6c2d075b696da3e9f8d206f5f097143291e759e4dd0269c0c
+  sha256: a39f1e214ae4ada1c237f6efa2d66964ddcbba545fb4cbffcad2bc1540d7411f
   requires_dist:
   - datasets>=3.1.0,<4
   - transformers>=4.46.2,<5

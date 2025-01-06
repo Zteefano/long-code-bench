@@ -37,7 +37,6 @@ def main(
 	with open(predictions_path, "r") as f:
 		for line in f:
 			data = json.loads(line)
-			print(data.keys())
 			predictions[data["num_files"]].append(data)
 
 	results = {}

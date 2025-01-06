@@ -1,3 +1,2 @@
-_target_: src.long_code_bench.models.APIModel
-model_type: openai
+_target_: src.long_code_bench.models.OpenAIModel
 model_version: gpt-4o
