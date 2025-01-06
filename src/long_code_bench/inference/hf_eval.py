@@ -98,41 +98,41 @@ class DatasetsEvaluator:
 				requests to be processed. If `None`, a temporary file is
 				used. Defaults to `None`.
 		"""
-		open(self.results_file, "w").close()
-
-		tasks = {
-			"prompts": [],
-			"ids": [],
-			"instance_ids": [],
-		}
+		tasks = []
 		for idx, instance in enumerate(self._iterate_dataset()):
-			tasks["prompts"].append(instance[self.prompt_feature])
-			tasks["ids"].append(f"{instance['instance_id']}-{idx}")
-			tasks["instance_ids"].append(instance["instance_id"])
+			tasks.append(
+				{
+					"prompt": instance[self.prompt_feature],
+					"id": f"{instance['instance_id']}-{idx}",
+					"instance_id": instance["instance_id"],
+					"num_files": instance["num_files"],
+					"num_tokens": instance["num_tokens"],
+				}
+			)
 
 		results = self.model.generate_batch(
-			tasks["prompts"],
+			[task["prompt"] for task in tasks],
 			max_context_length=self.max_context_length,
 			max_output_length=self.max_output_length,
-			ids=tasks["ids"],
+			ids=[task["id"] for task in tasks],
 			file_name=file_name,
+			batch_size=self.batch_size,  # type: ignore
 		)
 
-		for result, prompt, id in zip(
-			results, tasks["prompts"], tasks["instance_ids"], strict=True
-		):
-			with open(self.results_file, "a") as f:
+		with open(self.results_file, "w") as f:
+			for result, task in zip(results, tasks, strict=True):
 				f.write(
 					json.dumps(
 						{
-							"prompt": prompt,
+							"prompt": task["prompt"],
 							"generation": result,
-							"instance_id": id,
+							"instance_id": task["instance_id"],
+							"num_files": task["num_files"],
+							"num_tokens": task["num_tokens"],
 						}
 					)
 					+ "\n"
 				)
-		raise NotImplementedError
 
 	def _process_instance(self, batch: dict) -> None:
 		prompt = batch[self.prompt_feature]
@@ -144,6 +144,8 @@ class DatasetsEvaluator:
 			prompt = [prompt]
 			generation = [generation]
 			ids = [batch["instance_id"]]
+			num_files = [batch["num_files"]]
+			num_tokens = [batch["num_tokens"]]
 		else:
 			generation = self.model.generate_batch(
 				prompt,
@@ -151,6 +153,8 @@ class DatasetsEvaluator:
 				max_output_length=self.max_output_length,
 			)
 			ids = batch["instance_id"]
+			num_files = batch["num_files"]
+			num_tokens = batch["num_tokens"]
 
 		for i, (instance, gen) in enumerate(
 			zip(ids, generation, strict=False)
@@ -159,6 +163,8 @@ class DatasetsEvaluator:
 				"prompt": prompt[i],
 				"generation": gen,
 				"instance_id": instance,
+				"num_files": num_files[i],
+				"num_tokens": num_tokens[i],
 			}
 
 			with open(self.results_file, "a") as f:

@@ -41,6 +41,7 @@ class Model(ABC):
 		max_output_length: Optional[int] = None,
 		ids: Optional[List[str]] = None,
 		file_name: Optional[str] = None,
+		batch_size: int = 10,
 	) -> List[str]:
 		"""Generate text for a batch of prompts.
 
@@ -61,11 +62,23 @@ class Model(ABC):
 				for API models that support batch generation. If `None`,
 				a temporary file is used that is then deleted. By
 				default, `None`.
+			batch_size (int): The batch size to use when generating
+				text. Only relevant for API models. By default, `10`.
 
 		Returns:
 			List[str]: The list of generated texts.
 		"""
 		raise NotImplementedError
+
+	@property
+	def max_window(self) -> Optional[int]:
+		"""Maximum text length the model can process.
+
+		This includes both the prompt and the generated text. It is
+		`None` if there is no maximum length., which is the default
+		behavior.
+		"""
+		return None
 
 	@property
 	@abstractmethod

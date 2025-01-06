@@ -58,18 +58,24 @@ pixi r make_swebench_tuned \
 
 ## Running Evaluations
 
-For running an evaluation, run the `eval` task with Pixi (or the `eval.py` script with Python):
+For running an evaluation, run the `eval` task with Pixi (or the `eval.py` script with Python). Contrary to the `make_swebench_tuned` task, this one uses [Hydra](https://hydra.cc/) for managing runs' configurations, stored in the `conf` directory.
 
 ```bash
 pixi r eval \
-	--dataset_path [dataset_on_disk] \
-	--model_name [model_name] \
-	--model_type [api_or_open] \
-	--output [results_file] \
-	--batch_size [batch_size] \
+	dataset=swebench_verified_tuned \
+	model=gpt4ominim \
+	output=[results_file_path]
 ```
 
-The `--model_name` parameter can be either an Hugging Face path (_e.g._ `meta-llama/Llama-3.2-1B`) or one of the following supported API models:
-* `gpt-4o`
-* `gpt-4o-mini`
-* `Claude-3.5`
+## Harnessing Evaluations
+
+Finally, after patches for a set of instances have been generated, it is possible to harness their performance with the `harness_tuned` task (or the `src/long_code_bench/inference/harness.py` script):
+
+```bash
+pixi r harness_tuned \
+	--dataset [dataset_hf_identifier] \
+	--predictions_path [results_file_path] \
+	--max_workers [num_workers_to_use] \
+	--run_id [unique_run_id] \
+	--output_file [harness_results_path]
+```

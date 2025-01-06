@@ -62,8 +62,8 @@ def make_tunable_swebench(
 	dataset: str,
 	splits: List[str],
 	prompt_style: Literal["style-2", "style-3", "full_file_gen"],
-	max_k: int,
 	retrieval_type: Literal["bm25", "random"],
+	max_k: int,
 	retrieval_file: Optional[str] = None,
 	output_dir: Optional[str] = None,
 	hfhub_dataset: Optional[str] = None,
@@ -93,12 +93,12 @@ def make_tunable_swebench(
 			The style of prompt to generate for the dataset. Refer to
 			[this README](https://github.com/princeton-nlp/SWE-bench/blob/main/swebench/inference/make_datasets/README.md)
 			for more information.
-		max_k (int): The maximum number of files to retrieve for each
-			problem statement.
 		retrieval_type (Literal["bm25", "random"]): The type of
 			retrieval strategy to use. If `bm25`, the BM25 retrieval
 			results will be computed. If `random`, random files will be
 			retrieved together with the oracle ones.
+		max_k (int): The maximum number of files to retrieve for each
+			problem statement.
 		retrieval_file (Optional[str]): The path to the file where the
 			BM25 retrieval results are stored. If `None`, the retrieval
 			results will be computed. Defaults to `None`.

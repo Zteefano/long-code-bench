@@ -62,6 +62,7 @@ class OpenSourceModel(Model):
 		max_output_length: Optional[int] = None,
 		ids: Optional[List[str]] = None,
 		file_name: Optional[str] = None,
+		batch_size: int = 10,
 	) -> List[str]:
 		"""Generate text for a batch of prompts.
 
@@ -80,6 +81,8 @@ class OpenSourceModel(Model):
 			file_name (Optional[str]): The file to store the generated
 				results from a queued batch generation. Irrelevant for
 				open source models. By default, `None`.
+			batch_size (int): The batch size to use when generating, not
+				relevant for open source models. By default, `10`.
 
 		Returns:
 			List[str]: The list of generated texts.

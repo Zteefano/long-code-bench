@@ -14,7 +14,7 @@ __pycache__
 # Data
 data/
 !src/long_code_bench/data
-results/
+results*/
 logs/
 
 # Environment files

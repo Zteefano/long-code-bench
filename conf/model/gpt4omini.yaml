@@ -1,0 +1,3 @@
+_target_: src.long_code_bench.models.APIModel
+model_type: openai
+model_version: gpt-4o-mini

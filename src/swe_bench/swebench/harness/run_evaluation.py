@@ -4,6 +4,7 @@ import docker
 import json
 import resource
 import traceback
+from typing import Optional
 
 from argparse import ArgumentParser
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -356,7 +357,8 @@ def make_run_report(
         predictions: dict,
         full_dataset: list,
         client: docker.DockerClient,
-        run_id: str
+        run_id: str,
+        out_dir: str,
     ) -> Path:
     """
     Make a final evaluation and run report of the instances that have been run.
@@ -460,7 +462,8 @@ def make_run_report(
         "schema_version": 2,
     }
     report_file = Path(
-        list(predictions.values())[0]["model_name_or_path"].replace("/", "__")
+        out_dir + "/"
+        + list(predictions.values())[0]["model_name_or_path"].replace("/", "__")
         + f".{run_id}"
         + ".json"
     )
@@ -496,7 +499,8 @@ def main(
         open_file_limit: int,
         run_id: str,
         timeout: int,
-    ):
+        out_dir: Optional[str] = None,
+    ) -> Path:
     """
     Run evaluation harness for the given dataset and predictions.
     """
@@ -540,7 +544,7 @@ def main(
 
     # clean images + make final report
     clean_images(client, existing_images, cache_level, clean)
-    make_run_report(predictions, full_dataset, client, run_id)
+    return make_run_report(predictions, full_dataset, client, run_id, out_dir=out_dir if out_dir else ".")
 
 
 if __name__ == "__main__":
@@ -570,6 +574,7 @@ if __name__ == "__main__":
         "--clean", type=str2bool, default=False, help="Clean images above cache level"
     )
     parser.add_argument("--run_id", type=str, required=True, help="Run ID - identifies the run")
+    parser.add_argument("--out_dir", type=str, help="Output directory for report")
     args = parser.parse_args()
 
     main(**vars(args))

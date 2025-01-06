@@ -1,12 +1,12 @@
 [project]
 dependencies = [
     "datasets>=3.1.0,<4",
-    "transformers>=4.46.2,<5", 
-    "flash-attn>=2.7.0.post2,<3", 
-    "pyserini>=0.43.0,<0.44",
+    "transformers>=4.46.2,<5",
+    "flash-attn>=2.7.0.post2,<3",
     "causal-conv1d>=1.4",
     "mamba-ssm>=2.2,<3",
     "editdistance>=0.8.1,<0.9",
+    "hydra-core>=1.3.2,<2",
 ]
 description = "Add a short description here"
 name = "long-code-bench"
@@ -27,19 +27,29 @@ no-build-isolation = ["flash_attn", "causal-conv1d", "mamba-ssm"]
 [tool.pixi.pypi-dependencies]
 long_code_bench = { path = ".", editable = true }
 swebench = { path = "src/swe_bench", editable = true, extras = ["inference"] }
+pyserini = ">=0.43.0,<0.44"
 
 [tool.pixi.dependencies]
-cuda = {version="*", channel="nvidia"}
-pytorch = {version="2.4.*", channel="pytorch"}
-pytorch-cuda = {version="12.1.*", channel="pytorch"}
+cuda = { version = "*", channel = "nvidia" }
+pytorch = { version = "2.4.*", channel = "pytorch" }
+pytorch-cuda = { version = "12.1.*", channel = "pytorch" }
 faiss-gpu = "1.8"
 ruff = ">=0.6.7,<0.7"
 setuptools = ">=75.3.0,<76"
+
+[tool.pixi.feature.plot.dependencies]
+matplotlib = ">=3.10.0,<4"
+datasets = ">=3.2.0,<4"
+plotly = ">=5.24.1,<6"
 
 [tool.pixi.tasks]
 eval = "python eval.py"
 make_swebench_tuned = "python src/long_code_bench/data/tune_swebench.py"
 harness = "python -m swebench.harness.run_evaluation"
+harness_tuned = "python src/long_code_bench/inference/harness.py"
+
+[tool.pixi.environments]
+plot = { features = ["plot"], no-default-feature = true }
 
 [tool.ruff]
 line-length = 79
