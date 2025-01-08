@@ -46,7 +46,6 @@ def main(
 		with open(f"{tmp_dir}/pred_{run_id}_{num_files}.jsonl", "w") as f:
 			for d in data:
 				curr_d = {
-					"prompt": d["prompt"],
 					"generation": d["generation"],
 					"instance_id": d["instance_id"],
 				}

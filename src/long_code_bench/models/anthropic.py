@@ -158,7 +158,7 @@ class AnthropicModel(APIModel):
 			if curr_result.type != "succeeeded":
 				to_return[id] = ""
 			else:
-				to_return[id] = curr_result.content[0].text
+				to_return[id] = curr_result.result.message.content[0].text
 
 		return to_return
 
