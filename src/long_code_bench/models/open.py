@@ -35,19 +35,23 @@ class OpenSourceModel(Model):
 														#device_map='auto',
 														#max_memory=max_memory) # auto
 		
-		#quantization_config = BitsAndBytesConfig(load_in_8bit=True,
-        #                                 llm_int8_skip_modules=["mamba"])
+		quant_config = BitsAndBytesConfig(load_in_8bit=True)
+        #llm_int8_skip_modules=["mamba"])
 
 		self.model = AutoModelForCausalLM.from_pretrained(
 			hf_path,
+			low_cpu_mem_usage=True,
 			device_map='auto', # auto
-			torch_dtype=torch.float16,
-			#attn_implementation="flash_attention_2",
+			quantization_config=quant_config,
+			torch_dtype=torch.bfloat16,
+			attn_implementation="flash_attention_2",)
 			#max_memory=max_memory,
 			#token=token,
-			max_memory={f"{i}": "62GB" for i in range(torch.cuda.device_count())})
+			#max_memory={f"{i}": "62GB" for i in range(torch.cuda.device_count())})
 			#quantization_config=quantization_config)
 			#local_files_only=True,)
+
+		#self.model.forward = torch.compile(self.model.forward, mode="reduce-overhead", fullgraph=True)
 	
 		#print(f"Model loaded successfully on rank {rank}.")
 		
@@ -72,9 +76,13 @@ class OpenSourceModel(Model):
 
 		# Generate
 		#print('Generating...')
+		# print number of tokens in input
+		print(inputs["input_ids"].shape)
 		outputs = self.model.generate(
 			inputs["input_ids"],
 			max_new_tokens=max_output_length,
+			#cache_implementation = "static"
+			cache_implementation="offloaded_static"
 		)
 
 		#outputs = [output[0] for output in outputs]

@@ -1,4 +1,5 @@
 # export HF_HOME=/leonardo/home/userexternal/asampier/IscrC_TfG/cache/cache
+print('Loading libraries...')
 import json
 
 from datasets import load_from_disk
@@ -35,7 +36,7 @@ if __name__ == "__main__":
 		dataset,
 		"text",
 		"results/swe_bench_ver_tuned_small.json",
-		max_context_length=1_000_000, #8_192,
-		max_output_length=1_000_000, #8_192,
+		max_context_length=80_000, #1_000_000, #8_192,
+		max_output_length=80_000, #1_000_000, #8_192,
 	)
 	evaluator.run()
