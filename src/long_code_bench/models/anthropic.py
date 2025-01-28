@@ -150,15 +150,16 @@ class AnthropicModel(APIModel):
 				break
 			await asyncio.sleep(180)
 
+		await asyncio.sleep(180)
 		job_results = self.client.messages.batches.results(batch_id)
 		to_return = {}
 		for result in job_results:
 			id = result.custom_id[8:]
 			curr_result = result.result
-			if curr_result.type != "succeeeded":
+			if curr_result.type != "succeeded":
 				to_return[id] = ""
 			else:
-				to_return[id] = curr_result.result.message.content[0].text
+				to_return[id] = curr_result.message.content[0].text  # type: ignore
 
 		return to_return
 

@@ -63,7 +63,7 @@ For running an evaluation, run the `eval` task with Pixi (or the `eval.py` scrip
 ```bash
 pixi r eval \
 	dataset=swebench_verified_tuned \
-	model=gpt4ominim \
+	model=gpt4omini \
 	output=[results_file_path]
 ```
 

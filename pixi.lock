@@ -448,6 +448,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/orc-2.0.3-h12ee42a_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/packaging-24.2-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pandas-2.2.3-py312hf9745cd_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/patsy-1.0.1-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pcre2-10.44-hba22ea6_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pillow-11.1.0-py312h80c1187_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pixman-0.44.2-h29eaf8c_0.conda
@@ -473,8 +474,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/readline-8.2-h8228510_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.3-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/s2n-1.5.10-hb5b8611_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.15.1-py312h180e4f1_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/six-1.17.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/snappy-1.2.1-h8bd8927_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/statsmodels-0.14.4-py312hc0a28a1_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tenacity-9.0.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/tk-8.6.13-noxft_h4845f30_101.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/tornado-6.4.2-py312h66e93f0_0.conda
@@ -4294,7 +4297,7 @@ packages:
 - pypi: .
   name: long-code-bench
   version: 0.1.0
-  sha256: a39f1e214ae4ada1c237f6efa2d66964ddcbba545fb4cbffcad2bc1540d7411f
+  sha256: 6ce608f97615007d0545db26e9b92c42d2ae2984b6504b7375b7fc2a442f0742
   requires_dist:
   - datasets>=3.1.0,<4
   - transformers>=4.46.2,<5
@@ -4303,6 +4306,7 @@ packages:
   - mamba-ssm>=2.2,<3
   - editdistance>=0.8.1,<0.9
   - hydra-core>=1.3.2,<2
+  - pyserini>=0.43.0,<0.44
   requires_python: '>=3.11'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/linux-64/lz4-c-1.10.0-h5888daf_1.conda
@@ -4874,6 +4878,16 @@ packages:
   - docopt ; extra == 'testing'
   - pytest ; extra == 'testing'
   requires_python: '>=3.6'
+- conda: https://conda.anaconda.org/conda-forge/noarch/patsy-1.0.1-pyhd8ed1ab_1.conda
+  sha256: ab52916f056b435757d46d4ce0a93fd73af47df9c11fd72b74cc4b7e1caca563
+  md5: ee23fabfd0a8c6b8d6f3729b47b2859d
+  depends:
+  - numpy >=1.4.0
+  - python >=3.9
+  license: BSD-2-Clause AND PSF-2.0
+  license_family: BSD
+  size: 186594
+  timestamp: 1733792482894
 - conda: https://conda.anaconda.org/conda-forge/linux-64/pcre2-10.44-hba22ea6_2.conda
   sha256: 1087716b399dab91cc9511d6499036ccdc53eb29a288bebcb19cf465c51d7c0d
   md5: df359c09c41cd186fffb93a2d87aa6f5
@@ -5678,6 +5692,27 @@ packages:
   - doit>=0.36.0 ; extra == 'dev'
   - pydevtool ; extra == 'dev'
   requires_python: '>=3.10'
+- conda: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.15.1-py312h180e4f1_0.conda
+  sha256: 2c5c2ef30a1e540fc71a6c27fa773f47567c4d40889f7e8d6bdb7756ffc2aae8
+  md5: 355bcf0f629159c9bd10a406cd8b6c3a
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libblas >=3.9.0,<4.0a0
+  - libcblas >=3.9.0,<4.0a0
+  - libgcc >=13
+  - libgfortran
+  - libgfortran5 >=13.3.0
+  - liblapack >=3.9.0,<4.0a0
+  - libstdcxx >=13
+  - numpy <2.5
+  - numpy >=1.19,<3
+  - numpy >=1.23.5
+  - python >=3.12,<3.13.0a0
+  - python_abi 3.12.* *_cp312
+  license: BSD-3-Clause
+  license_family: BSD
+  size: 19366363
+  timestamp: 1736618745364
 - pypi: https://files.pythonhosted.org/packages/4f/d2/18246f43ca730bb81918f87b7e886531eda32d835811ad9f4657c54eee35/sentencepiece-0.2.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
   name: sentencepiece
   version: 0.2.0
@@ -5733,6 +5768,24 @@ packages:
   version: '2.6'
   sha256: e72c4ff06e4fb6e4b5a9f0f55fe6e81514581fca1515028625d0f299c602ccc9
   requires_python: '>=3.8'
+- conda: https://conda.anaconda.org/conda-forge/linux-64/statsmodels-0.14.4-py312hc0a28a1_0.conda
+  sha256: 6cc65ba902b32207e8a697b0e0408a28d6cc166be04f1882c40739a86a253d22
+  md5: 97dc960f3d9911964d73c2cf240baea5
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=13
+  - numpy <3,>=1.22.3
+  - numpy >=1.19,<3
+  - packaging >=21.3
+  - pandas !=2.1.0,>=1.4
+  - patsy >=0.5.6
+  - python >=3.12,<3.13.0a0
+  - python_abi 3.12.* *_cp312
+  - scipy !=1.9.2,>=1.8
+  license: BSD-3-Clause
+  license_family: BSD
+  size: 12103203
+  timestamp: 1727987129263
 - pypi: src/swe_bench
   name: swebench
   version: 2.1.2

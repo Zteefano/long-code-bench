@@ -4,6 +4,7 @@ import ast
 import chardet
 import subprocess
 import random
+import tiktoken
 from argparse import ArgumentTypeError
 from git import Repo
 from pathlib import Path
@@ -305,8 +306,12 @@ def ingest_directory_contents(
 	include_tests=False,
 	random: bool = False,
 	max_files: Optional[int] = None,
+	max_tokens: Optional[int] = None,
 	exclude: Sequence[str] = (),
 ):
+	if max_tokens is not None:
+		enc = tiktoken.encoding_for_model("gpt-4o")
+
 	files_content = {}
 	files_names = [
 		f
@@ -315,7 +320,10 @@ def ingest_directory_contents(
 		)
 		if not f in exclude
 	]
-	for relative_path in files_names[:max_files]:
+
+	num_files = 0
+	num_tokens = 0
+	for relative_path in files_names:
 		filename = os.path.join(root_dir, relative_path)
 		encoding = detect_encoding(filename)
 		if encoding is None:
@@ -326,7 +334,18 @@ def ingest_directory_contents(
 					content = file.read()
 			except (UnicodeDecodeError, LookupError):
 				content = "[BINARY DATA FILE]"
+
+		if max_tokens is not None:
+			num_tokens += len(enc.encode(content))
+			if num_tokens > max_tokens:
+				break
+
 		files_content[relative_path] = content
+
+		num_files += 1
+		if max_files is not None and num_files >= max_files:
+			break
+
 	return files_content
 
 

@@ -64,6 +64,7 @@ def make_tunable_swebench(
 	prompt_style: Literal["style-2", "style-3", "full_file_gen"],
 	retrieval_type: Literal["bm25", "random"],
 	max_k: int,
+	max_tokens: Optional[int] = None,
 	retrieval_file: Optional[str] = None,
 	output_dir: Optional[str] = None,
 	hfhub_dataset: Optional[str] = None,
@@ -98,7 +99,17 @@ def make_tunable_swebench(
 			results will be computed. If `random`, random files will be
 			retrieved together with the oracle ones.
 		max_k (int): The maximum number of files to retrieve for each
-			problem statement.
+			problem statement if `max_tokens` is `None`, or the maximum
+			number of samples to generate per issue, divided evenly by
+			number of tokens in the context if `max_tokens` is not
+			`None`.
+		max_tokens (Optional[int]): The maximum number of tokens to
+			consider when creating the dataset. If `None`, no limit is
+			set. Defaults to `None`. Notice that this paramter changes
+			the behavior of `max_k`, as it stops referring to the number
+			of files to retrieve, but to the number samples to generate
+			per issue, divided evenly by number of tokens in the
+			context.
 		retrieval_file (Optional[str]): The path to the file where the
 			BM25 retrieval results are stored. If `None`, the retrieval
 			results will be computed. Defaults to `None`.
@@ -144,6 +155,7 @@ def make_tunable_swebench(
 			retrieval_file,
 			k,
 			prompt_style,
+			max_tokens=(max_tokens // max_k) * k if max_tokens else None,
 			file_source=f"oracle+{retrieval_type}",
 		)
 
@@ -232,7 +244,15 @@ if __name__ == "__main__":
 	parser.add_argument(
 		"--max_k",
 		type=int,
-		help="The maximum number of files to retrieve per problem statement.",
+		help="The maximum number of files to retrieve per problem statement"
+		+ " or the maximum number of samples to generate per issue.",
+	)
+	parser.add_argument(
+		"--max_tokens",
+		type=int,
+		default=None,
+		help="The maximum number of tokens to consider when creating the"
+		+ " dataset.",
 	)
 	parser.add_argument(
 		"--hfhub_dataset",

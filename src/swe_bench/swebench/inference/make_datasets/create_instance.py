@@ -372,6 +372,7 @@ def add_text_inputs(
 	k,
 	prompt_style,
 	file_source,
+	max_tokens=None,
 	max_context_len=None,
 	tokenizer_name=None,
 	verbose=False,
@@ -441,7 +442,8 @@ def add_text_inputs(
 						instance["file_contents"] = ingest_directory_contents(
 							cm.repo_path,
 							random=True,
-							max_files=k,
+							max_files=None,
+							max_tokens=max_tokens,
 							exclude=oracle_file_names,
 						)
 					elif file_source in {"oracle+bm25"}:

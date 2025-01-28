@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from argparse import ArgumentParser
 from collections import defaultdict
 
@@ -37,6 +38,10 @@ def main(
 	with open(predictions_path, "r") as f:
 		for line in f:
 			data = json.loads(line)
+			patch_pattern = r"```patch.*?```"
+			match = re.search(patch_pattern, data["generation"], re.DOTALL)
+			if match:
+				data["generation"] = match.group(0)
 			predictions[data["num_files"]].append(data)
 
 	results = {}
