@@ -29,7 +29,10 @@ class OpenSourceModel(Model):
 		# Load tokenizer and model with optional token
 		#self.tokenizer = AutoTokenizer.from_pretrained(hf_path, token=token)
 		#my_path = '/leonardo/home/userexternal/asampier/IscrC_TfG/cache/cache/hub/models--ai21labs--Jamba-tiny-dev/snapshots/ed303361004ac875426a61675edecf8e9d976882'
-		self.tokenizer = AutoTokenizer.from_pretrained(hf_path, #token=token, 
+		self.tokenizer = AutoTokenizer.from_pretrained(hf_path,
+														cache_dir='/leonardo/home/userexternal/lromani0/IscrC_TfG/cache/cache/hub/',
+														device_map='auto',
+														#token=token, 
 														#local_files_only=True,
 														)
 														#device_map='auto',
@@ -38,24 +41,20 @@ class OpenSourceModel(Model):
 		quant_config = BitsAndBytesConfig(load_in_8bit=True)
         #llm_int8_skip_modules=["mamba"])
 
+		# Split model across 2 nodes, each with 4 gpus
+
 		self.model = AutoModelForCausalLM.from_pretrained(
 			hf_path,
-			low_cpu_mem_usage=True,
+			# low_cpu_mem_usage=True,
 			device_map='auto', # auto
 			quantization_config=quant_config,
 			torch_dtype=torch.bfloat16,
-			attn_implementation="flash_attention_2",)
-			#max_memory=max_memory,
-			#token=token,
-			#max_memory={f"{i}": "62GB" for i in range(torch.cuda.device_count())})
-			#quantization_config=quantization_config)
-			#local_files_only=True,)
-
-		#self.model.forward = torch.compile(self.model.forward, mode="reduce-overhead", fullgraph=True)
-	
-		#print(f"Model loaded successfully on rank {rank}.")
+			attn_implementation="flash_attention_2",
+			cache_dir='/leonardo/home/userexternal/lromani0/IscrC_TfG/cache/cache/hub/',)
 		
-	
+		device_map = self.model.hf_device_map
+		print(f"Model is running on {len(set(device_map.values()))} GPUs.")
+		print(f"Device map: {device_map}")
 
 	def generate_batch(
 		self,

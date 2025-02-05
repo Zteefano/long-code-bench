@@ -1,0 +1,154 @@
+[INFO]: Starting head node lrdn0314 at 10.1.1.58
+[INFO]: Removing old headnode overlay and creating a new writable layer
+[INFO]: srun --nodes=1 --ntasks=1 -w lrdn0314 singularity exec --nv --bind /leonardo_scratch:/leonardo_scratch,/leonardo_work:/leonardo_work --overlay /leonardo_scratch/large/userexternal/lromani0/worker_overlay_0.img /leonardo/home/userexternal/lromani0/IscrC_TfG/docker_images/vllm_singularity-2025-01-14-2e6300811da9.sif bash -c "ray start --head --include-dashboard True --dashboard-port 8265 --dashboard-host=0.0.0.0 --node-ip-address=10.1.1.58 --port=6379 --num-cpus 32 --disable-usage-stats --block & sleep 60 && vllm serve /leonardo_scratch/large/userinternal/mviscia1/models/Llama-3.1_405B-Instruct --host 0.0.0.0 --port 8000 --tensor-parallel-size 4 --pipeline-parallel-size 4 --api-key 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"
+===================================================
+[INFO]: To access the RAY web ui, remember to open a ssh tunnel with:
+ssh -L 6092:10.1.1.58:8265 lromani0@login02-ext.leonardo.cineca.it -N
+then you can connect to the dashboard at http://127.0.0.1:6092
+===================================================
+[INFO]: Removing old workernode 1 overlay and creating a new writable layer
+2025-02-05 11:26:40,331	INFO usage_lib.py:441 -- Usage stats collection is disabled.
+2025-02-05 11:26:40,331	INFO scripts.py:823 -- [37mLocal node IP[39m: [1m10.1.1.58[22m
+[INFO]: Starting worker 1 lrdn0321 at 10.1.1.65
+[INFO]: srun --nodes=1 --ntasks=1 -w lrdn0321 singularity exec --nv --bind /leonardo_scratch:/leonardo_scratch,/leonardo_work:/leonardo_work --overlay /leonardo_scratch/large/userexternal/lromani0/worker_overlay_1.img /leonardo/home/userexternal/lromani0/IscrC_TfG/docker_images/vllm_singularity-2025-01-14-2e6300811da9.sif ray start --address 10.1.1.58:6379 --num-cpus 32 --disable-usage-stats --block
+[INFO]: Removing old workernode 2 overlay and creating a new writable layer
+2025-02-05 11:26:42,516	SUCC scripts.py:860 -- [32m--------------------[39m
+2025-02-05 11:26:42,516	SUCC scripts.py:861 -- [32mRay runtime started.[39m
+2025-02-05 11:26:42,517	SUCC scripts.py:862 -- [32m--------------------[39m
+2025-02-05 11:26:42,517	INFO scripts.py:864 -- [36mNext steps[39m
+2025-02-05 11:26:42,517	INFO scripts.py:867 -- To add another node to this Ray cluster, run
+2025-02-05 11:26:42,517	INFO scripts.py:870 -- [1m  ray start --address='10.1.1.58:6379'[22m
+2025-02-05 11:26:42,517	INFO scripts.py:879 -- To connect to this Ray cluster:
+2025-02-05 11:26:42,517	INFO scripts.py:881 -- [35mimport[39m[26m ray
+2025-02-05 11:26:42,517	INFO scripts.py:882 -- ray[35m.[39m[26minit(_node_ip_address[35m=[39m[26m[33m'10.1.1.58'[39m[26m)
+2025-02-05 11:26:42,517	INFO scripts.py:894 -- To submit a Ray job using the Ray Jobs CLI:
+2025-02-05 11:26:42,517	INFO scripts.py:895 -- [1m  RAY_ADDRESS='http://10.1.1.58:8265' ray job submit --working-dir . -- python my_script.py[22m
+2025-02-05 11:26:42,517	INFO scripts.py:904 -- See https://docs.ray.io/en/latest/cluster/running-applications/job-submission/index.html 
+2025-02-05 11:26:42,517	INFO scripts.py:908 -- for more information on submitting Ray jobs to the Ray cluster.
+2025-02-05 11:26:42,517	INFO scripts.py:913 -- To terminate the Ray runtime, run
+2025-02-05 11:26:42,517	INFO scripts.py:914 -- [1m  ray stop[22m
+2025-02-05 11:26:42,517	INFO scripts.py:917 -- To view the status of the cluster, use
+2025-02-05 11:26:42,517	INFO scripts.py:918 --   [1mray status[22m[26m
+2025-02-05 11:26:42,517	INFO scripts.py:922 -- To monitor and debug Ray, view the dashboard at 
+2025-02-05 11:26:42,517	INFO scripts.py:923 --   [1m10.1.1.58:8265[22m[26m
+2025-02-05 11:26:42,517	INFO scripts.py:930 -- [4mIf connection to the dashboard fails, check your firewall settings and network configuration.[24m
+2025-02-05 11:26:42,517	INFO scripts.py:1031 -- [36m[1m--block[22m[39m
+2025-02-05 11:26:42,518	INFO scripts.py:1032 -- This command will now block forever until terminated by a signal.
+2025-02-05 11:26:42,518	INFO scripts.py:1035 -- Running subprocesses are monitored and a message will be printed if any of them terminate unexpectedly. Subprocesses exit with SIGTERM will be treated as graceful, thus NOT reported.
+[INFO]: Starting worker 2 lrdn0364 at 10.2.0.4
+[INFO]: srun --nodes=1 --ntasks=1 -w lrdn0364 singularity exec --nv --bind /leonardo_scratch:/leonardo_scratch,/leonardo_work:/leonardo_work --overlay /leonardo_scratch/large/userexternal/lromani0/worker_overlay_2.img /leonardo/home/userexternal/lromani0/IscrC_TfG/docker_images/vllm_singularity-2025-01-14-2e6300811da9.sif ray start --address 10.1.1.58:6379 --num-cpus 32 --disable-usage-stats --block
+[INFO]: Removing old workernode 3 overlay and creating a new writable layer
+[INFO]: Starting worker 3 lrdn0463 at 10.2.0.103
+[INFO]: srun --nodes=1 --ntasks=1 -w lrdn0463 singularity exec --nv --bind /leonardo_scratch:/leonardo_scratch,/leonardo_work:/leonardo_work --overlay /leonardo_scratch/large/userexternal/lromani0/worker_overlay_3.img /leonardo/home/userexternal/lromani0/IscrC_TfG/docker_images/vllm_singularity-2025-01-14-2e6300811da9.sif ray start --address 10.1.1.58:6379 --num-cpus 32 --disable-usage-stats --block
+2025-02-05 11:26:47,653	INFO scripts.py:1005 -- [37mLocal node IP[39m: [1m10.1.1.65[22m
+2025-02-05 11:26:48,774	SUCC scripts.py:1018 -- [32m--------------------[39m
+2025-02-05 11:26:48,774	SUCC scripts.py:1019 -- [32mRay runtime started.[39m
+2025-02-05 11:26:48,775	SUCC scripts.py:1020 -- [32m--------------------[39m
+2025-02-05 11:26:48,775	INFO scripts.py:1022 -- To terminate the Ray runtime, run
+2025-02-05 11:26:48,775	INFO scripts.py:1023 -- [1m  ray stop[22m
+2025-02-05 11:26:48,775	INFO scripts.py:1031 -- [36m[1m--block[22m[39m
+2025-02-05 11:26:48,775	INFO scripts.py:1032 -- This command will now block forever until terminated by a signal.
+2025-02-05 11:26:48,775	INFO scripts.py:1035 -- Running subprocesses are monitored and a message will be printed if any of them terminate unexpectedly. Subprocesses exit with SIGTERM will be treated as graceful, thus NOT reported.
+2025-02-05 11:26:50,312	INFO scripts.py:1005 -- [37mLocal node IP[39m: [1m10.2.0.4[22m
+2025-02-05 11:26:51,434	SUCC scripts.py:1018 -- [32m--------------------[39m
+2025-02-05 11:26:51,434	SUCC scripts.py:1019 -- [32mRay runtime started.[39m
+2025-02-05 11:26:51,434	SUCC scripts.py:1020 -- [32m--------------------[39m
+2025-02-05 11:26:51,434	INFO scripts.py:1022 -- To terminate the Ray runtime, run
+2025-02-05 11:26:51,434	INFO scripts.py:1023 -- [1m  ray stop[22m
+2025-02-05 11:26:51,434	INFO scripts.py:1031 -- [36m[1m--block[22m[39m
+2025-02-05 11:26:51,434	INFO scripts.py:1032 -- This command will now block forever until terminated by a signal.
+2025-02-05 11:26:51,434	INFO scripts.py:1035 -- Running subprocesses are monitored and a message will be printed if any of them terminate unexpectedly. Subprocesses exit with SIGTERM will be treated as graceful, thus NOT reported.
+2025-02-05 11:26:52,735	INFO scripts.py:1005 -- [37mLocal node IP[39m: [1m10.2.0.103[22m
+2025-02-05 11:26:53,855	SUCC scripts.py:1018 -- [32m--------------------[39m
+2025-02-05 11:26:53,855	SUCC scripts.py:1019 -- [32mRay runtime started.[39m
+2025-02-05 11:26:53,855	SUCC scripts.py:1020 -- [32m--------------------[39m
+2025-02-05 11:26:53,855	INFO scripts.py:1022 -- To terminate the Ray runtime, run
+2025-02-05 11:26:53,855	INFO scripts.py:1023 -- [1m  ray stop[22m
+2025-02-05 11:26:53,855	INFO scripts.py:1031 -- [36m[1m--block[22m[39m
+2025-02-05 11:26:53,855	INFO scripts.py:1032 -- This command will now block forever until terminated by a signal.
+2025-02-05 11:26:53,855	INFO scripts.py:1035 -- Running subprocesses are monitored and a message will be printed if any of them terminate unexpectedly. Subprocesses exit with SIGTERM will be treated as graceful, thus NOT reported.
+[INFO]: everything is running.
+INFO 02-05 11:27:44 api_server.py:585] vLLM API server version 0.6.4.post1
+INFO 02-05 11:27:44 api_server.py:586] args: Namespace(subparser='serve', model_tag='/leonardo_scratch/large/userinternal/mviscia1/models/Llama-3.1_405B-Instruct', config='', host='0.0.0.0', port=8000, uvicorn_log_level='info', allow_credentials=False, allowed_origins=['*'], allowed_methods=['*'], allowed_headers=['*'], api_key='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', lora_modules=None, prompt_adapters=None, chat_template=None, response_role='assistant', ssl_keyfile=None, ssl_certfile=None, ssl_ca_certs=None, ssl_cert_reqs=0, root_path=None, middleware=[], return_tokens_as_token_ids=False, disable_frontend_multiprocessing=False, enable_auto_tool_choice=False, tool_call_parser=None, tool_parser_plugin='', model='/leonardo_scratch/large/userinternal/mviscia1/models/Llama-3.1_405B-Instruct', task='auto', tokenizer=None, skip_tokenizer_init=False, revision=None, code_revision=None, tokenizer_revision=None, tokenizer_mode='auto', chat_template_text_format='string', trust_remote_code=False, allowed_local_media_path=None, download_dir=None, load_format='auto', config_format=<ConfigFormat.AUTO: 'auto'>, dtype='auto', kv_cache_dtype='auto', quantization_param_path=None, max_model_len=None, guided_decoding_backend='outlines', distributed_executor_backend=None, worker_use_ray=False, pipeline_parallel_size=4, tensor_parallel_size=4, max_parallel_loading_workers=None, ray_workers_use_nsight=False, block_size=16, enable_prefix_caching=False, disable_sliding_window=False, use_v2_block_manager=False, num_lookahead_slots=0, seed=0, swap_space=4, cpu_offload_gb=0, gpu_memory_utilization=0.9, num_gpu_blocks_override=None, max_num_batched_tokens=None, max_num_seqs=256, max_logprobs=20, disable_log_stats=False, quantization=None, rope_scaling=None, rope_theta=None, hf_overrides=None, enforce_eager=False, max_seq_len_to_capture=8192, disable_custom_all_reduce=False, tokenizer_pool_size=0, tokenizer_pool_type='ray', tokenizer_pool_extra_config=None, limit_mm_per_prompt=None, mm_processor_kwargs=None, enable_lora=False, enable_lora_bias=False, max_loras=1, max_lora_rank=16, lora_extra_vocab_size=256, lora_dtype='auto', long_lora_scaling_factors=None, max_cpu_loras=None, fully_sharded_loras=False, enable_prompt_adapter=False, max_prompt_adapters=1, max_prompt_adapter_token=0, device='auto', num_scheduler_steps=1, multi_step_stream_outputs=True, scheduler_delay_factor=0.0, enable_chunked_prefill=None, speculative_model=None, speculative_model_quantization=None, num_speculative_tokens=None, speculative_disable_mqa_scorer=False, speculative_draft_tensor_parallel_size=None, speculative_max_model_len=None, speculative_disable_by_batch_size=None, ngram_prompt_lookup_max=None, ngram_prompt_lookup_min=None, spec_decoding_acceptance_method='rejection_sampler', typical_acceptance_sampler_posterior_threshold=None, typical_acceptance_sampler_posterior_alpha=None, disable_logprobs_during_spec_decoding=None, model_loader_extra_config=None, ignore_patterns=[], preemption_mode=None, served_model_name=None, qlora_adapter_name_or_path=None, otlp_traces_endpoint=None, collect_detailed_traces=None, disable_async_output_proc=False, scheduling_policy='fcfs', override_neuron_config=None, override_pooler_config=None, disable_log_requests=False, max_log_len=None, disable_fastapi_docs=False, enable_prompt_tokens_details=False, dispatch_function=<function serve at 0x15436f9dd6c0>)
+INFO 02-05 11:27:48 config.py:350] This model supports multiple tasks: {'embedding', 'generate'}. Defaulting to 'generate'.
+INFO 02-05 11:27:48 config.py:1020] Defaulting to use ray for distributed inference
+WARNING 02-05 11:27:48 arg_utils.py:1013] Chunked prefill is enabled by default for models with max_model_len > 32K. Currently, chunked prefill might not work with some features or models. If you encounter any issues, please disable chunked prefill by setting --enable-chunked-prefill=False.
+WARNING 02-05 11:27:48 arg_utils.py:1075] [DEPRECATED] Block manager v1 has been removed, and setting --use-v2-block-manager to True or False has no effect on vLLM behavior. Please remove --use-v2-block-manager in your engine argument. If your use case is not supported by SelfAttnBlockSpaceManager (i.e. block manager v2), please file an issue with detailed information.
+INFO 02-05 11:27:48 config.py:1136] Chunked prefill is enabled with max_num_batched_tokens=512.
+WARNING 02-05 11:27:48 config.py:479] Async output processing can not be enabled with pipeline parallel
+INFO 02-05 11:27:49 llm_engine.py:249] Initializing an LLM engine (v0.6.4.post1) with config: model='/leonardo_scratch/large/userinternal/mviscia1/models/Llama-3.1_405B-Instruct', speculative_config=None, tokenizer='/leonardo_scratch/large/userinternal/mviscia1/models/Llama-3.1_405B-Instruct', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=131072, download_dir=None, load_format=LoadFormat.AUTO, tensor_parallel_size=4, pipeline_parallel_size=4, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, quantization_param_path=None, device_config=cuda, decoding_config=DecodingConfig(guided_decoding_backend='outlines'), observability_config=ObservabilityConfig(otlp_traces_endpoint=None, collect_model_forward_time=False, collect_model_execute_time=False), seed=0, served_model_name=/leonardo_scratch/large/userinternal/mviscia1/models/Llama-3.1_405B-Instruct, num_scheduler_steps=1, chunked_prefill_enabled=True multi_step_stream_outputs=True, enable_prefix_caching=False, use_async_output_proc=False, use_cached_outputs=False, chat_template_text_format=string, mm_processor_kwargs=None, pooler_config=None)
+INFO 02-05 11:27:49 ray_gpu_executor.py:134] use_ray_spmd_worker: False
+INFO 02-05 11:28:52 selector.py:135] Using Flash Attention backend.
+[36m(RayWorkerWrapper pid=2363498)[0m INFO 02-05 11:28:52 selector.py:135] Using Flash Attention backend.
+INFO 02-05 11:28:53 utils.py:961] Found nccl from library libnccl.so.2
+INFO 02-05 11:28:53 pynccl.py:69] vLLM is using nccl==2.21.5
+[36m(RayWorkerWrapper pid=740600, ip=10.2.0.4)[0m INFO 02-05 11:28:53 utils.py:961] Found nccl from library libnccl.so.2
+[36m(RayWorkerWrapper pid=740600, ip=10.2.0.4)[0m INFO 02-05 11:28:53 pynccl.py:69] vLLM is using nccl==2.21.5
+INFO 02-05 11:28:54 custom_all_reduce_utils.py:242] reading GPU P2P access cache from /leonardo/home/userexternal/lromani0/.cache/vllm/gpu_p2p_access_cache_for_0,1,2,3.json
+INFO 02-05 11:28:54 shm_broadcast.py:236] vLLM message queue communication handle: Handle(connect_ip='127.0.0.1', local_reader_ranks=[1, 2, 3], buffer=<vllm.distributed.device_communicators.shm_broadcast.ShmRingBuffer object at 0x15436f00c910>, local_subscribe_port=35881, remote_subscribe_port=None)
+[36m(RayWorkerWrapper pid=818362, ip=10.1.1.65)[0m INFO 02-05 11:28:54 custom_all_reduce_utils.py:242] reading GPU P2P access cache from /leonardo/home/userexternal/lromani0/.cache/vllm/gpu_p2p_access_cache_for_0,1,2,3.json
+[36m(RayWorkerWrapper pid=818362, ip=10.1.1.65)[0m INFO 02-05 11:28:54 shm_broadcast.py:236] vLLM message queue communication handle: Handle(connect_ip='127.0.0.1', local_reader_ranks=[1, 2, 3], buffer=<vllm.distributed.device_communicators.shm_broadcast.ShmRingBuffer object at 0x14bb91592850>, local_subscribe_port=59443, remote_subscribe_port=None)
+INFO 02-05 11:28:54 utils.py:961] Found nccl from library libnccl.so.2
+INFO 02-05 11:28:54 pynccl.py:69] vLLM is using nccl==2.21.5
+INFO 02-05 11:28:54 model_runner.py:1072] Starting to load model /leonardo_scratch/large/userinternal/mviscia1/models/Llama-3.1_405B-Instruct...
+[36m(RayWorkerWrapper pid=740600, ip=10.2.0.4)[0m INFO 02-05 11:28:54 model_runner.py:1072] Starting to load model /leonardo_scratch/large/userinternal/mviscia1/models/Llama-3.1_405B-Instruct...
+[36m(RayWorkerWrapper pid=2363498)[0m INFO 02-05 11:37:43 model_runner.py:1077] Loading model weights took 47.0273 GB
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m INFO 02-05 11:28:52 selector.py:135] Using Flash Attention backend.[32m [repeated 14x across cluster] (Ray deduplicates logs by default. Set RAY_DEDUP_LOGS=0 to disable log deduplication, or see https://docs.ray.io/en/master/ray-observability/user-guides/configure-logging.html#log-deduplication for more options.)[0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m INFO 02-05 11:28:54 utils.py:961] Found nccl from library libnccl.so.2[32m [repeated 29x across cluster][0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m INFO 02-05 11:28:54 pynccl.py:69] vLLM is using nccl==2.21.5[32m [repeated 29x across cluster][0m
+[36m(RayWorkerWrapper pid=819030, ip=10.2.0.103)[0m INFO 02-05 11:28:54 custom_all_reduce_utils.py:242] reading GPU P2P access cache from /leonardo/home/userexternal/lromani0/.cache/vllm/gpu_p2p_access_cache_for_0,1,2,3.json[32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=818829, ip=10.2.0.103)[0m INFO 02-05 11:28:54 shm_broadcast.py:236] vLLM message queue communication handle: Handle(connect_ip='127.0.0.1', local_reader_ranks=[1, 2, 3], buffer=<vllm.distributed.device_communicators.shm_broadcast.ShmRingBuffer object at 0x14cc33098390>, local_subscribe_port=55357, remote_subscribe_port=None)[32m [repeated 2x across cluster][0m
+[36m(RayWorkerWrapper pid=2363504)[0m INFO 02-05 11:28:54 model_runner.py:1072] Starting to load model /leonardo_scratch/large/userinternal/mviscia1/models/Llama-3.1_405B-Instruct...[32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=819030, ip=10.2.0.103)[0m INFO 02-05 11:37:55 model_runner.py:1077] Loading model weights took 46.0488 GB[32m [repeated 3x across cluster][0m
+[36m(RayWorkerWrapper pid=818963, ip=10.2.0.103)[0m INFO 02-05 11:38:18 model_runner.py:1077] Loading model weights took 46.0488 GB
+[36m(RayWorkerWrapper pid=818829, ip=10.2.0.103)[0m INFO 02-05 11:38:19 model_runner.py:1077] Loading model weights took 46.0488 GB
+[36m(RayWorkerWrapper pid=818362, ip=10.1.1.65)[0m INFO 02-05 11:38:34 model_runner.py:1077] Loading model weights took 46.0488 GB[32m [repeated 2x across cluster][0m
+INFO 02-05 11:39:05 model_runner.py:1077] Loading model weights took 47.0273 GB
+[36m(RayWorkerWrapper pid=740600, ip=10.2.0.4)[0m INFO 02-05 11:44:55 model_runner.py:1077] Loading model weights took 49.9962 GB[32m [repeated 4x across cluster][0m
+[36m(RayWorkerWrapper pid=740800, ip=10.2.0.4)[0m INFO 02-05 11:45:49 model_runner.py:1077] Loading model weights took 49.9962 GB
+[36m(RayWorkerWrapper pid=740733, ip=10.2.0.4)[0m INFO 02-05 11:46:21 model_runner.py:1077] Loading model weights took 49.9962 GB
+[36m(RayWorkerWrapper pid=740667, ip=10.2.0.4)[0m INFO 02-05 11:46:40 model_runner.py:1077] Loading model weights took 49.9962 GB
+[36m(RayWorkerWrapper pid=818829, ip=10.2.0.103)[0m INFO 02-05 11:46:41 worker.py:232] Memory profiling results: total_gpu_memory=63.42GiB initial_memory_usage=47.57GiB peak_torch_memory=46.17GiB memory_usage_post_profile=48.39GiB non_torch_memory=2.33GiB kv_cache_size=8.59GiB gpu_memory_utilization=0.90
+INFO 02-05 11:46:41 worker.py:232] Memory profiling results: total_gpu_memory=63.42GiB initial_memory_usage=48.55GiB peak_torch_memory=47.13GiB memory_usage_post_profile=49.37GiB non_torch_memory=2.33GiB kv_cache_size=7.62GiB gpu_memory_utilization=0.90
+INFO 02-05 11:46:42 distributed_gpu_executor.py:57] # GPU blocks: 6607, # CPU blocks: 7943
+INFO 02-05 11:46:42 distributed_gpu_executor.py:61] Maximum concurrency for 131072 tokens per request: 0.81x
+ERROR 02-05 11:46:42 worker_base.py:480] Error executing method initialize_cache. This might cause deadlock in distributed execution.
+ERROR 02-05 11:46:42 worker_base.py:480] Traceback (most recent call last):
+ERROR 02-05 11:46:42 worker_base.py:480]   File "/usr/local/lib/python3.11/site-packages/vllm/worker/worker_base.py", line 472, in execute_method
+ERROR 02-05 11:46:42 worker_base.py:480]     return executor(*args, **kwargs)
+ERROR 02-05 11:46:42 worker_base.py:480]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 02-05 11:46:42 worker_base.py:480]   File "/usr/local/lib/python3.11/site-packages/vllm/worker/worker.py", line 268, in initialize_cache
+ERROR 02-05 11:46:42 worker_base.py:480]     raise_if_cache_size_invalid(num_gpu_blocks,
+ERROR 02-05 11:46:42 worker_base.py:480]   File "/usr/local/lib/python3.11/site-packages/vllm/worker/worker.py", line 498, in raise_if_cache_size_invalid
+ERROR 02-05 11:46:42 worker_base.py:480]     raise ValueError(
+ERROR 02-05 11:46:42 worker_base.py:480] ValueError: The model's max seq len (131072) is larger than the maximum number of tokens that can be stored in KV cache (105712). Try increasing `gpu_memory_utilization` or decreasing `max_model_len` when initializing the engine.
+[36m(RayWorkerWrapper pid=2363498)[0m ERROR 02-05 11:46:42 worker_base.py:480] Error executing method initialize_cache. This might cause deadlock in distributed execution.
+[36m(RayWorkerWrapper pid=2363498)[0m ERROR 02-05 11:46:42 worker_base.py:480] Traceback (most recent call last):
+[36m(RayWorkerWrapper pid=2363498)[0m ERROR 02-05 11:46:42 worker_base.py:480]   File "/usr/local/lib/python3.11/site-packages/vllm/worker/worker_base.py", line 472, in execute_method
+[36m(RayWorkerWrapper pid=2363498)[0m ERROR 02-05 11:46:42 worker_base.py:480]     return executor(*args, **kwargs)
+[36m(RayWorkerWrapper pid=2363498)[0m ERROR 02-05 11:46:42 worker_base.py:480]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+[36m(RayWorkerWrapper pid=2363498)[0m ERROR 02-05 11:46:42 worker_base.py:480]   File "/usr/local/lib/python3.11/site-packages/vllm/worker/worker.py", line 268, in initialize_cache
+[36m(RayWorkerWrapper pid=2363498)[0m ERROR 02-05 11:46:42 worker_base.py:480]     raise_if_cache_size_invalid(num_gpu_blocks,
+[36m(RayWorkerWrapper pid=2363498)[0m ERROR 02-05 11:46:42 worker_base.py:480]   File "/usr/local/lib/python3.11/site-packages/vllm/worker/worker.py", line 498, in raise_if_cache_size_invalid
+[36m(RayWorkerWrapper pid=2363498)[0m ERROR 02-05 11:46:42 worker_base.py:480]     raise ValueError(
+[36m(RayWorkerWrapper pid=2363498)[0m ERROR 02-05 11:46:42 worker_base.py:480] ValueError: The model's max seq len (131072) is larger than the maximum number of tokens that can be stored in KV cache (105712). Try increasing `gpu_memory_utilization` or decreasing `max_model_len` when initializing the engine.
+[36m(RayWorkerWrapper pid=740600, ip=10.2.0.4)[0m INFO 02-05 11:46:42 worker.py:232] Memory profiling results: total_gpu_memory=63.42GiB initial_memory_usage=51.52GiB peak_torch_memory=51.22GiB memory_usage_post_profile=52.54GiB non_torch_memory=2.53GiB kv_cache_size=3.33GiB gpu_memory_utilization=0.90[32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m ERROR 02-05 11:46:42 worker_base.py:480] Error executing method initialize_cache. This might cause deadlock in distributed execution.[32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m ERROR 02-05 11:46:42 worker_base.py:480] Traceback (most recent call last):[32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m ERROR 02-05 11:46:42 worker_base.py:480]   File "/usr/local/lib/python3.11/site-packages/vllm/worker/worker_base.py", line 472, in execute_method[32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m ERROR 02-05 11:46:42 worker_base.py:480]     return executor(*args, **kwargs)[32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m ERROR 02-05 11:46:42 worker_base.py:480]            ^^^^^^^^^^^^^^^^^^^^^^^^^[32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m ERROR 02-05 11:46:42 worker_base.py:480]   File "/usr/local/lib/python3.11/site-packages/vllm/worker/worker.py", line 268, in initialize_cache[32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m ERROR 02-05 11:46:42 worker_base.py:480]     raise_if_cache_size_invalid(num_gpu_blocks,[32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m ERROR 02-05 11:46:42 worker_base.py:480]   File "/usr/local/lib/python3.11/site-packages/vllm/worker/worker.py", line 498, in raise_if_cache_size_invalid[32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m ERROR 02-05 11:46:42 worker_base.py:480]     raise ValueError([32m [repeated 14x across cluster][0m
+[36m(RayWorkerWrapper pid=818563, ip=10.1.1.65)[0m ERROR 02-05 11:46:42 worker_base.py:480] ValueError: The model's max seq len (131072) is larger than the maximum number of tokens that can be stored in KV cache (105712). Try increasing `gpu_memory_utilization` or decreasing `max_model_len` when initializing the engine.[32m [repeated 14x across cluster][0m
+2025-02-05 11:47:43,898	ERR scripts.py:1065 -- [31mSome Ray subprocesses exited unexpectedly:[39m
+2025-02-05 11:47:43,898	ERR scripts.py:1069 -- [31m[1mraylet[22m[26m[39m[0m[2m [exit code=1][22m[0m
+2025-02-05 11:47:43,898	ERR scripts.py:1076 -- [31mRemaining processes will be killed.[39m
+2025-02-05 11:47:43,991	ERR scripts.py:1065 -- [31mSome Ray subprocesses exited unexpectedly:[39m
+2025-02-05 11:47:43,991	ERR scripts.py:1069 -- [31m[1mraylet[22m[26m[39m[0m[2m [exit code=1][22m[0m
+2025-02-05 11:47:43,991	ERR scripts.py:1076 -- [31mRemaining processes will be killed.[39m
+2025-02-05 11:47:44,562	ERR scripts.py:1065 -- [31mSome Ray subprocesses exited unexpectedly:[39m
+2025-02-05 11:47:44,562	ERR scripts.py:1069 -- [31m[1mraylet[22m[26m[39m[0m[2m [exit code=1][22m[0m
+2025-02-05 11:47:44,562	ERR scripts.py:1076 -- [31mRemaining processes will be killed.[39m
