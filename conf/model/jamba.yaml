@@ -1,2 +1,0 @@
-hf_path: ai21labs/AI21-Jamba-1.5-Large
-token: ${env:HF_TOKEN}

@@ -4,6 +4,7 @@ from typing import Generator, List, Optional
 import datasets as dts
 from dotenv import load_dotenv
 from tqdm.auto import tqdm
+from tqdm.asyncio import tqdm_asyncio
 
 from src.long_code_bench.models import Model
 
@@ -189,7 +190,7 @@ class DatasetsEvaluator:
 		elif isinstance(self.dataset, dts.Dataset):
 			for batch in _iterate_dataset(self.dataset, self.batch_size):
 				yield batch
-
+				
 	def _len_dataset(self) -> int:
 		if isinstance(self.dataset, dts.DatasetDict):
 			return sum(len(self.dataset[split]) for split in self.dataset)
@@ -197,3 +198,25 @@ class DatasetsEvaluator:
 			return len(self.dataset)
 		else:
 			raise ValueError("Dataset must be a Dataset or DatasetDict.")
+
+	async def async_run(self) -> None:
+		# Example assuming self.dataset is a Hugging Face Dataset
+		total = len(self.dataset)
+		progress_bar = tqdm_asyncio(total=total, desc="Processing instances")
+
+		for batch in self._iterate_dataset_batch():
+			# Await the asynchronous generate_batch call:
+			generations = await self.model.generate_batch(
+				batch[self.prompt_feature],
+				max_context_length=self.max_context_length,
+				max_output_length=self.max_output_length
+			)
+			# Write out your results as before.
+			with open(self.results_file, "a") as f:
+				for prompt, gen in zip(batch[self.prompt_feature], generations):
+					out = {"prompt": prompt, "generation": gen}
+					f.write(json.dumps(out) + "\n")
+			
+			progress_bar.update(len(batch[self.prompt_feature]))
+		progress_bar.close()
+

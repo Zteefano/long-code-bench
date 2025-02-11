@@ -1,12 +1,12 @@
-output: ???
+output: output
 batch_size: null
 batch_queue: true
 open_kwargs_file: null
 
 defaults:
   - _self_
-  - dataset: swebench_verified_tuned
-  - model: gpt4o
+  - dataset: swebenc_verified_tuned_small # swebench_verified_tuned_128k, swebench_verified_tuned_random_small, swebench_verified_tuned
+  - model: jamba_large
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
