@@ -60,12 +60,20 @@ class OpenAIModel(APIModel):
 			str: The generated text.
 		"""
 		
-		response = self.client.chat.completions.create(
-			messages=[{"role": "user", "content": prompt}],
-			model=self.model,
-			max_tokens=self.max_window,
-		)
-		return response.choices[0].message.content or ""
+		try:
+			response = self.client.chat.completions.create(
+				messages=[{"role": "user", "content": prompt}],
+				model=self.model,
+				max_tokens=self._max_window,
+			)
+			return response.choices[0].message.content or ""
+		except openai.BadRequestError as error:
+			error_message = str(error)
+			if "maximum context length" in error_message:
+				print(error_message)
+				return "Error: Input exceeds the maximum token limit."
+			else:
+				return f"Error: {error_message}"
 
 	def generate_batch(
 		self,
