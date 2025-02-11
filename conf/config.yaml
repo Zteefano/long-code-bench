@@ -1,6 +1,6 @@
-output: output
+output: output/jamba_large.jsonl
 batch_size: null
-batch_queue: true
+batch_queue: false
 open_kwargs_file: null
 
 defaults:

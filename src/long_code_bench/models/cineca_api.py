@@ -1,99 +1,203 @@
+import ast
+from typing import Any, List, Optional, Dict
+
 import asyncio
-from typing import List, Optional
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer, PretrainedConfig
 from openai import OpenAI
-from src.long_code_bench.models import Model
-from transformers import AutoTokenizer
+from src.long_code_bench.models.base import Model
+
+
+def _convert_value(value: str) -> Any:  # noqa: ANN401
+	try:
+		return ast.literal_eval(value)
+	except (ValueError, SyntaxError):
+		return value
 
 
 class CinecaAPI(Model):
-    def __init__(self, base_url: str, api_key: str, model: str):
-        # Initialize the OpenAI client to talk to vLLM.
-        self.client = OpenAI(base_url=base_url, api_key=api_key)
-        self.model = model
-        self.tokenizer = AutoTokenizer.from_pretrained("ai21labs/AI21-Jamba-1.5-Large")
+	"""Class for all open-source models from the Hugging Face Hub.
 
-    @property
-    def name(self) -> str:
-        return "CinecaAPI"
+	Args:
+		hf_path (str): The model's path on the Hugging Face Hub.
+		token (Optional[str]): The token to use for the model. By
+			default, `None`.
+		offline (bool): Whether to load the model and the tokenizer from
+			local files only. By default, `False`.
+		**kwargs: Additional keyword arguments to pass to the model.
+			These argument can provide additional configuration like
+			`attn_implementation`, or `torch_dtype`.
+	"""
+	def __init__(self, base_url: str, api_key: str, model: str):
+		self.client = OpenAI(base_url=base_url, api_key=api_key)
+		self.model = model
+		self.tokenizer = AutoTokenizer.from_pretrained("ai21labs/AI21-Jamba-1.5-Large")
+		self.max_window = 256000
 
-    async def process_prompt(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        max_context_length: Optional[int] = None,
-        max_output_length: Optional[int] = None,
-    ) -> str:
-        # Enforce max_context_length by tokenizing and truncating the prompt.
-        if max_context_length is not None:
-            tokenized = self.tokenizer(prompt)
-            if len(tokenized["input_ids"]) > max_context_length:
-                truncated_ids = tokenized["input_ids"][:max_context_length]
-                prompt = self.tokenizer.decode(truncated_ids, skip_special_tokens=True)
-        
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
+	def generate(
+		self,
+		prompt: str,
+		max_context_length: Optional[int] = None,
+		max_output_length: Optional[int] = None,
+	) -> str:
+		"""Generate text given a prompt by making an API call.
 
-        api_kwargs = {}
-        if max_output_length is not None:
-            api_kwargs["max_tokens"] = max_output_length
-        
-        print(messages)
-        quit()
+		Args:
+			prompt (str): The prompt to generate text from.
+			max_context_length (Optional[int]): The maximum length of
+				the context to consider. Only present for compatibility,
+				but not used. By default, `None`.
+			max_output_length (Optional[int]): The maximum length of the
+				output text. Only present for compatibility, but not
+				used. By default, `None`.
 
-        completion = await asyncio.to_thread(
-            self.client.chat.completions.create,
-            model=self.model,
-            messages=messages,
-            **api_kwargs
-        )
-        
-        generated = completion.choices[0].message
-        
-        # Alternatively, if the API does not enforce a max output length,
-        # you can post-process the generated text.
-        if max_output_length is not None:
-            # Tokenize the generated text and truncate if needed.
-            gen_tokenized = self.tokenizer(generated)
-            if len(gen_tokenized["input_ids"]) > max_output_length:
-                truncated_ids = gen_tokenized["input_ids"][:max_output_length]
-                generated = self.tokenizer.decode(truncated_ids, skip_special_tokens=True)
-        
-        return generated
+		Returns:
+			str: The generated text.
+		"""
+		print(prompt)
+		quit()
+		response = self.client.chat.completions.create(
+			messages=[{"role": "user", "content": prompt}],
+			model=self.model,
+			max_tokens=self.max_window,
+		)
+		return response.choices[0].message.content or ""
 
-    async def process_batch(
-        self, 
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        max_context_length: Optional[int] = None,
-        max_output_length: Optional[int] = None,
-    ) -> List[str]:
-        # Create tasks for each prompt, passing along the limits.
-        tasks = [
-            self.process_prompt(prompt, system_prompt, max_context_length, max_output_length)
-            for prompt in prompts
-        ]
-        results = await asyncio.gather(*tasks)
-        return results
+	def generate_batch(
+		self,
+		prompts: List[str],
+		max_context_length: Optional[int] = None,
+		max_output_length: Optional[int] = None,
+		ids: Optional[List[str]] = None,
+		file_name: Optional[str] = None,
+		batch_size: int = 10,
+	) -> List[str]:
+		"""Generate text for a batch of prompts.
 
-    async def generate(
-        self,
-        prompt: str,
-        max_context_length: Optional[int] = None,
-        max_output_length: Optional[int] = None,
-        system_prompt: Optional[str] = None,
-    ) -> str:
-        return await self.process_prompt(prompt, system_prompt, max_context_length, max_output_length)
+		The main feature of this method is that it generates text
+		through batch API requests, which are handled asynchronously.
+		This incurs a delay in the response time, but is more efficient
+		in terms of costs.
 
-    async def generate_batch(
-        self,
-        prompts: List[str],
-        max_context_length: Optional[int] = None,
-        max_output_length: Optional[int] = None,
-        system_prompt: Optional[str] = None,
-        ids: Optional[List[str]] = None,
-        file_name: Optional[str] = None,
-        batch_size: Optional[int] = None,
-    ) -> List[str]:
-        return await self.process_batch(prompts, system_prompt, max_context_length, max_output_length)
+		Args:
+			prompts (List[str]): The list of prompts to generate text
+				from.
+			max_context_length (Optional[int]): The maximum length of
+				the context to consider. Only present for compatibility,
+				but not used. By default, `None`.
+			max_output_length (Optional[int]): The maximum length of the
+				output text. Only present for compatibility, but not
+				used. By default, `None`.
+			ids (Optional[List[str]]): The list of IDs associated to the
+				prompts. Necessary to keep track of the generated text
+				associated with each prompt. By default, `None`.
+			file_name (Optional[str]): The file to store the generated
+				results from a queued batch generation. If `None`, a
+				temporary file is used that is then deleted. By default,
+				`None`.
+			batch_size (int): The size of the batch, _i.e._, the number
+				of prompts to generate text for in each batch file. By
+				default, `10`.
+
+		Returns:
+			List[str]: The list of generated texts.
+		"""
+		assert ids is not None, "IDs must be provided for batch generation"
+
+		async def _generate_batches() -> List[str]:
+			tasks = []
+			for i in range(0, len(prompts), batch_size):
+				prompts_batch = prompts[i : i + batch_size]
+				ids_batch = ids[i : i + batch_size]
+				tasks.append(self._create_batch_file(prompts_batch, ids_batch))
+
+			results = await asyncio.gather(*tasks, return_exceptions=True)
+			combined_results = {}
+			for result in results:
+				if not isinstance(result, BaseException):
+					combined_results.update(result)
+
+			to_return = []
+			for instance_id in ids:
+				to_return.append(combined_results.get(instance_id, ""))
+			return to_return
+
+		results = asyncio.run(_generate_batches())
+
+		if file_name:
+			with open(file_name, "w") as f:
+				for result in results:
+					f.write(result + "\n")
+
+		return results
+
+	async def _create_batch_file(
+		self, prompts_batch: List[str], ids_batch: List[str]
+	) -> Dict[str, str]:
+		tmp_dir = os.getenv("TMPDIR", "/tmp")
+		temp_file_name = os.path.join(
+			tmp_dir, f"batch_file_{int(time.time())}_{os.getpid()}.jsonl"
+		)
+
+		with open(temp_file_name, "w") as f:
+			for prompt, instance_id in zip(
+				prompts_batch, ids_batch, strict=True
+			):
+				task = {
+					"custom_id": f"task-{instance_id}",
+					"method": "POST",
+					"url": "/v1/chat/completions",
+					"body": {
+						"model": self.model_version,
+						"temperature": 0.1,
+						"messages": [
+							{"role": "user", "content": prompt},
+						],
+					},
+				}
+				f.write(json.dumps(task) + "\n")
+
+		batch_file = self.client.files.create(
+			file=open(temp_file_name, "rb"), purpose="batch"
+		)
+		batch_job = self.client.batches.create(
+			input_file_id=batch_file.id,
+			endpoint="/v1/chat/completions",
+			completion_window="24h",
+		)
+
+		while True:
+			job_status = self.client.batches.retrieve(batch_job.id)
+			if (
+				job_status.status == "completed" and job_status.output_file_id
+			) or job_status.status == "failed":
+				break
+			await asyncio.sleep(180)
+
+		result_file_id = batch_job.output_file_id
+		if not result_file_id:
+			raise ValueError("Batch job failed to generate output")
+		result = self.client.files.content(result_file_id).content
+
+		result_file_name = os.path.join(
+			tmp_dir, f"batch_job_results_{os.getpid()}.jsonl"
+		)
+		with open(result_file_name, "wb") as file:
+			file.write(result)
+
+		results = {}
+		with open(result_file_name, "r") as file:
+			for line in file:
+				json_object = json.loads(line.strip())
+				results[json_object["task_id"][5:]] = json_object["response"][
+					"body"
+				]["choices"][0]["message"]["content"]
+
+		os.remove(temp_file_name)
+
+		return results
+
+	@property
+	def name(self) -> str:
+		"""Name of the model, used for identification."""
+		return self.model

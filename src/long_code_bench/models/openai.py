@@ -28,15 +28,16 @@ class OpenAIModel(APIModel):
 
 	def __init__(
 		self,
-		model_version: str,
+		model: str,
 		api_key: Optional[str] = None,
 		max_window: int = 128_000,
+		base_url: str = "https://api.openai.com",
 	) -> None:
-		self.model_version = model_version
+		self.model = model
 		self._max_window = max_window
 
 		api_key = api_key or os.getenv("OPENAI_API_KEY")
-		self.client: openai.OpenAI = openai.OpenAI(api_key=api_key)
+		self.client: openai.OpenAI = openai.OpenAI(api_key=api_key, base_url=base_url)
 
 	def generate(
 		self,
@@ -58,9 +59,10 @@ class OpenAIModel(APIModel):
 		Returns:
 			str: The generated text.
 		"""
+		
 		response = self.client.chat.completions.create(
 			messages=[{"role": "user", "content": prompt}],
-			model=self.model_version,
+			model=self.model,
 			max_tokens=self.max_window,
 		)
 		return response.choices[0].message.content or ""
@@ -150,7 +152,7 @@ class OpenAIModel(APIModel):
 					"method": "POST",
 					"url": "/v1/chat/completions",
 					"body": {
-						"model": self.model_version,
+						"model": self.model,
 						"temperature": 0.1,
 						"messages": [
 							{"role": "user", "content": prompt},
@@ -203,4 +205,4 @@ class OpenAIModel(APIModel):
 	@override
 	def name(self) -> str:
 		"""Name of the model, used for identification."""
-		return self.model_version
+		return self.model

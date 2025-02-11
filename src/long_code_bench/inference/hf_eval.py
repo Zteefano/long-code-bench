@@ -204,19 +204,39 @@ class DatasetsEvaluator:
 		total = len(self.dataset)
 		progress_bar = tqdm_asyncio(total=total, desc="Processing instances")
 
-		for batch in self._iterate_dataset_batch():
+		iterator = (
+			self._iterate_dataset_batch()
+			if self.batch_size
+			else self._iterate_dataset()
+		)
+
+		for instance in iterator:
 			# Await the asynchronous generate_batch call:
 			generations = await self.model.generate_batch(
-				batch[self.prompt_feature],
+				instance[self.prompt_feature],
 				max_context_length=self.max_context_length,
 				max_output_length=self.max_output_length
 			)
 			# Write out your results as before.
 			with open(self.results_file, "a") as f:
-				for prompt, gen in zip(batch[self.prompt_feature], generations):
+				for prompt, gen in zip(instance[self.prompt_feature], generations):
 					out = {"prompt": prompt, "generation": gen}
 					f.write(json.dumps(out) + "\n")
 			
-			progress_bar.update(len(batch[self.prompt_feature]))
+			progress_bar.update(len(instance[self.prompt_feature]))
 		progress_bar.close()
+
+	def run(self) -> None:
+		"""Run inference on the dataset."""
+		open(self.results_file, "w").close()
+		bar = tqdm(total=self._len_dataset(), desc="Processing instances")
+		iterator = (
+			self._iterate_dataset_batch()
+			if self.batch_size
+			else self._iterate_dataset()
+		)
+		for instance in iterator:
+			self._process_instance(instance)
+			bar.update(len(instance["instance_id"]) if self.batch_size else 1)
+		bar.close()
 

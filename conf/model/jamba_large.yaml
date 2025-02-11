@@ -1,4 +1,4 @@
-_target_: src.long_code_bench.models.CinecaAPI
+_target_: src.long_code_bench.models.OpenAIModel
 base_url: http://127.0.0.1:8000/v1
 api_key: password
 model: /leonardo/home/userexternal/lromani0/llm_models/AI21-Jamba-1.5-Large
