@@ -1,12 +1,14 @@
 # VS Code
 .vscode
 
-# pixi environments
+# Python environments
 .pixi
 *.egg-info
+requirements.txt
 
-# API keys
+# Environment variables & API keys
 keys.json
+.env
 
 # Python files
 __pycache__
@@ -16,16 +18,11 @@ data/
 !src/long_code_bench/data
 results*/
 logs/
+repos/
+repos.txt
 
-# Environment files
-.env
-
-# ignore results folder
-
+# Other
 causal-conv1d/
 mamba/
-
-requirements.txt
-
 eval.sh
 SWE_Eval.*

@@ -79,3 +79,28 @@ pixi r harness_tuned \
 	--run_id [unique_run_id] \
 	--output_file [harness_results_path]
 ```
+
+## CodeQA
+
+To build the CodeQA task, run the `make_qa` task (or the `src/long_code_bench/data/codeqa.py` script):
+
+```bash
+pixi r make_qa \
+	--repos [repositories_list] \
+	--output [output_directory] \
+	--format [prompt_format]
+```
+
+Here is the information about each argument.
+
+* The parameter `repoos` specifies a **file** with the name of a repository on each line. The name are written in the format `owner/repo_name` (an example is provided below).
+* The parameter `output` specifies a **directory** where the dataset will be stored, together with intermediary files to avoid repeating GitHub API or OpenAI calls for repeated runs. In particular, if the directory already exists and it already contains some of the intermediary files (under the name `github_issues.json` and `github_issues_qa.json`), the task will skip the step that creates them.
+* The paramter `format` defines the format of the prompts in which the questions are presented. The possible options are `post` (the default one), `pre`, and `without`.
+
+Here is an example of a repositories list file:
+
+```
+yaml/pyyaml
+pypa/virtualenv
+jaraco/zipp
+```

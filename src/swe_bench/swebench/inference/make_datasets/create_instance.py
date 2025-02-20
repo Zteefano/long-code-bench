@@ -376,6 +376,7 @@ def add_text_inputs(
 	max_context_len=None,
 	tokenizer_name=None,
 	verbose=False,
+	keep_contents: bool = False,
 ):
 	"""Adds text inputs context for prediction in-place.
 
@@ -439,6 +440,9 @@ def add_text_inputs(
 						)
 					elif file_source in {"oracle+random"}:
 						oracle_file_names = get_oracle_filenames(instance)
+						instance["oracle_file_contents"] = ingest_files(
+							get_oracle_filenames(instance)
+						)
 						instance["file_contents"] = ingest_directory_contents(
 							cm.repo_path,
 							random=True,
@@ -447,10 +451,12 @@ def add_text_inputs(
 							exclude=oracle_file_names,
 						)
 					elif file_source in {"oracle+bm25"}:
-						file_contents = get_oracle_filenames(instance) | set(
+						instance["oracle_file_contents"] = ingest_files(
+							get_oracle_filenames(instance)
+						)
+						instance["file_contents"] = ingest_files(
 							[x["docid"] for x in instance["hits"]]
 						)
-						instance["file_contents"] = ingest_files(file_contents)
 					elif file_source in {"none"}:
 						instance["file_contents"] = dict()
 					else:
@@ -485,6 +491,16 @@ def add_text_inputs(
 					input_instances[instance_id]["text_inputs"] = (
 						PROMPT_FUNCTIONS[prompt_style](instance)
 					)
+					if keep_contents:
+						input_instances[instance_id]["readmes"] = instance[
+							"readmes"
+						]
+						input_instances[instance_id]["file_contents"] = (
+							instance["file_contents"]
+						)
+						input_instances[instance_id][
+							"oracle_file_contents"
+						] = instance["oracle_file_contents"]
 			except Exception as e:
 				print(f"Failed on instance {instance_id}", e)
 				traceback.print_exc()

@@ -308,22 +308,30 @@ def ingest_directory_contents(
 	max_files: Optional[int] = None,
 	max_tokens: Optional[int] = None,
 	exclude: Sequence[str] = (),
+	oracles: Optional[Sequence[str]] = None,
 ):
 	if max_tokens is not None:
 		enc = tiktoken.encoding_for_model("gpt-4o")
+	if oracles is None:
+		oracles = []
 
 	files_content = {}
-	files_names = [
-		f
-		for f in list_files(
-			root_dir, include_tests=include_tests, shuffle=random
-		)
-		if not f in exclude
-	]
+	file_names = []
+	if len(oracles) > 0:
+		file_names = oracles
+	file_names.extend(
+		[
+			f
+			for f in list_files(
+				root_dir, include_tests=include_tests, shuffle=random
+			)
+			if not f in exclude and not f in oracles
+		]
+	)
 
 	num_files = 0
 	num_tokens = 0
-	for relative_path in files_names:
+	for relative_path in file_names:
 		filename = os.path.join(root_dir, relative_path)
 		encoding = detect_encoding(filename)
 		if encoding is None:
@@ -342,7 +350,8 @@ def ingest_directory_contents(
 
 		files_content[relative_path] = content
 
-		num_files += 1
+		if relative_path not in oracles:
+			num_files += 1
 		if max_files is not None and num_files >= max_files:
 			break
 

@@ -15,6 +15,7 @@ from swe_bench.swebench.inference.make_datasets.bm25_retrieval import (
 	main as bm25_main,
 )
 from swe_bench.swebench.inference.make_datasets.create_instance import (
+	PROMPT_FUNCTIONS,
 	add_text_inputs,
 )
 from swe_bench.swebench.inference.make_datasets.create_text_dataset import (
@@ -58,7 +59,7 @@ def _save_dataset(
 		data.push_to_hub(hfhub_dataset, token=token)
 
 
-def make_tunable_swebench(
+def make_tunable_swebench(  # noqa: C901
 	dataset: str,
 	splits: List[str],
 	prompt_style: Literal["style-2", "style-3", "full_file_gen"],
@@ -140,24 +141,42 @@ def make_tunable_swebench(
 		else retrieval_file
 	)
 
+	global_instances = {}
+	for split in tqdm(splits, desc="Retrieving files"):
+		global_instances[split] = {
+			x["instance_id"]: deepcopy(x) for x in data[split]
+		}
+		add_text_inputs(
+			global_instances[split],
+			retrieval_file,
+			max_k,
+			prompt_style,
+			max_tokens=max_tokens,
+			file_source=f"oracle+{retrieval_type}",
+			keep_contents=True,
+		)
+
 	split_instances = {}
 	for split, k in tqdm(
 		itertools.product(splits, range(max_k)),
 		total=len(splits) * max_k,
-		desc="Retrieving files",
+		desc="Building prompts",
 	):
 		split_instances[f"{split}-{k}"] = {
-			x["instance_id"]: deepcopy(x)  # type: ignore
-			for x in data[split]
+			x["instance_id"]: deepcopy(x)
+			for x in global_instances[split].values()
 		}
-		add_text_inputs(
-			split_instances[f"{split}-{k}"],
-			retrieval_file,
-			k,
-			prompt_style,
-			max_tokens=(max_tokens // max_k) * k if max_tokens else None,
-			file_source=f"oracle+{retrieval_type}",
-		)
+		for instance in split_instances[f"{split}-{k}"].values():
+			retrieved_files = len(instance["file_contents"])
+			num_files = int(retrieved_files / max_k * k)
+			if num_files == 0:
+				instance["file_contents"] = instance["oracle_file_contents"]
+			else:
+				instance["file_contents"] = (
+					dict(list(instance["file_contents"].items())[:num_files])
+					| instance["oracle_file_contents"]
+				)
+			instance["text_inputs"] = PROMPT_FUNCTIONS[prompt_style](instance)
 
 	columns = [
 		"instance_id",
