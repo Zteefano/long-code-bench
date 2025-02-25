@@ -136,7 +136,7 @@ D) {issue["incorrect_answers"][2]}"""
 				qs.append(f"""You are going to be provided with a question
 about the repository {repo}. Provide the answer to the question by stating
 ONLY the letter associated to the question.
-{repo_text}
+
 {question}""")
 
 	with open(output_path, "w") as file:
@@ -189,7 +189,12 @@ def _main(
 		with open(f"{output_dir}/github_issues_qa.json", "w") as file:
 			json.dump(issues_qa, file, indent=4)
 
-	_create_dataset(issues_qa, gitrepos, f"{output_dir}/dataset_{format}.json")
+	_create_dataset(
+		issues_qa,
+		gitrepos,
+		f"{output_dir}/dataset_{format}.json",
+		format=format,
+	)
 
 	return issues_qa
 
