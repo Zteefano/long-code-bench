@@ -42,6 +42,10 @@ datasets = ">=3.2.0,<4"
 plotly = ">=5.24.1,<6"
 statsmodels = ">=0.14.4,<0.15"
 
+[tool.pixi.feature.tests.dependencies]
+pytest = ">=7.2.2,<8"
+
+
 [tool.pixi.tasks]
 eval = "python eval.py"
 make_qa = "python src/long_code_bench/data/codeqa.py"
@@ -51,6 +55,7 @@ harness_tuned = "python src/long_code_bench/inference/harness.py"
 
 [tool.pixi.environments]
 plot = { features = ["plot"], no-default-feature = true }
+tests = { features = ["tests"], no-default-feature = true }
 
 [tool.ruff]
 line-length = 79
