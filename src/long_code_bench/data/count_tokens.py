@@ -1,9 +1,44 @@
+import os
 from typing import Optional, TypeVar
 
 import datasets as dts
 import tiktoken
 
+from long_code_bench.data.repo import GitHubRepository
+
 T = TypeVar("T", dts.Dataset, dts.DatasetDict)
+
+
+def count_repo_tokens(repo: str | GitHubRepository) -> int:
+	"""Count the number of tokens in a repository.
+
+	Args:
+		repo (str | GitHubRepository): The repository to count the
+			tokens in. Can be either a `str` or a `GitHubRepository`. If
+			a `str`, it should be in the format `"owner/repo"`.
+
+	Returns:
+		int: The number of tokens in the repository, using the GPT-4o
+			tokenizer.
+	"""
+	if isinstance(repo, str):
+		repo = GitHubRepository(repo)
+
+	enc = tiktoken.encoding_for_model("gpt-4o")
+	with repo as r:
+		files = r.read_files(
+			filter=lambda x: "tests" not in x.split(os.sep)
+			and ".git" not in x.split(os.sep)
+		)
+
+	tokens = 0
+	for file, contents in files.items():
+		try:
+			tokens += len(enc.encode(contents))
+		except Exception as e:
+			print(f"Error encoding {file}: {e}")
+			continue
+	return tokens
 
 
 def count_tokens(

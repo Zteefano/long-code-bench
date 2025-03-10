@@ -4,8 +4,9 @@ import subprocess
 import time
 import types
 from pathlib import Path
-from typing import Dict, List, Literal, Optional
+from typing import Callable, Dict, List, Literal, Mapping, Optional
 
+import docker
 import requests
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -37,9 +38,12 @@ class GitHubRepository:
 	Args:
 		name (str): The name of the GitHub repository in the format
 			`"owner/repo_name"` (_e.g._ `"yaml/pyyaml"`).
+		persistent (bool): If `True`, the repository will not be
+			deleted after exiting the context manager. Default is
+			`False`.
 	"""
 
-	def __init__(self, name: str) -> None:
+	def __init__(self, name: str, persistent: bool = False) -> None:
 		self.repo = name
 
 		url = f"https://api.github.com/repos/{name}"
@@ -54,6 +58,7 @@ class GitHubRepository:
 				time.sleep(1)
 
 		self._cloned_path: Optional[Path] = None
+		self.persistent = persistent
 
 	def clone(self, path: str | Path) -> None:
 		"""Clone the repository to a specified path.
@@ -115,7 +120,9 @@ class GitHubRepository:
 		except Exception:
 			return None
 
-	def list_files(self) -> List[str]:
+	def list_files(
+		self,
+	) -> List[str]:
 		"""List all files in the repository.
 
 		This method lists all files in the repository and returns
@@ -141,12 +148,21 @@ class GitHubRepository:
 			if file.is_file()
 		]
 
-	def read_files(self) -> Dict[str, str]:
+	def read_files(
+		self, filter: Optional[Callable[[str], bool]] = None
+	) -> Dict[str, str]:
 		"""Retrieve the content of all files in the repository.
 
 		This method retrieves the content of all files in the repository
 		and returns them as a dictionary, where the keys are the file
 		names and the values are the file contents.
+
+		Args:
+			filter (Optional[Callable[[str], bool]]): A filter function
+				that takes a file name as input and returns `True` if
+				the file should be included in the result, or `False`
+				otherwise. If `None`, all files are included. Default is
+				`None`.
 
 		Returns:
 			dict[str, str]: A dictionary containing the file names as
@@ -161,7 +177,11 @@ class GitHubRepository:
 				" before accessing files."
 			)
 
-		return {file: self.read_file(file) for file in self.list_files()}
+		return {
+			file: self.read_file(file)
+			for file in self.list_files()
+			if filter is None or filter(file)
+		}
 
 	def get_issues(
 		self, state: Literal["open", "closed"] = "closed", wait: int = 1
@@ -217,6 +237,127 @@ class GitHubRepository:
 			)
 
 		return to_return
+
+	def build_docker_image(
+		self,
+		dockerfile: Optional[str | Mapping[str, str]] = None,
+		force_rebuild: bool = False,
+	) -> docker.models.images.Image:
+		"""Build a Docker image to work with the repository.
+
+		The image is supposed to have all the dependencies necessary to
+		work with the repository in development mode.
+
+		In order to build the image, a `Dockerfile` is required. If not
+		specified, the method will try using a default `Dockerfile` that
+		simply pulls a Python image and runs `pip install -e .`.
+
+		Args:
+			dockerfile (Optional[str | Mapping[str, str]]): It can be
+				either a string with the content of the `Dockerfile`, a
+				dictionary with repository names as keys and their
+				respective `Dockerfile` content as values, or a `None`
+				value, in which case a default `Dockerfile` will be
+				used.
+			force_rebuild (bool): If `True`, the method will force the
+				rebuild of the Docker image, even if it already exists.
+				Default is `False`.
+
+		Returns:
+			docker.models.images.Image: The built Docker image.
+
+		Raises:
+			RuntimeError: If the repository is not cloned yet.
+		"""
+		if self._cloned_path is None:
+			raise RuntimeError(
+				"Repository not cloned. Use with-statement to clone repository"
+				" before building the Docker image."
+			)
+
+		client = docker.from_env()
+
+		try:
+			existing_image = client.images.get(f"lcb.{self.repo}")
+			if not force_rebuild:
+				return existing_image
+			existing_image.remove()
+		except docker.errors.ImageNotFound:
+			pass
+
+		if dockerfile is None:
+			dockerfile = (
+				"FROM python:3.10-slim\n"
+				"WORKDIR /app\n"
+				"COPY . .\n"
+				"RUN pip install -e .\n"
+			)
+
+		if not isinstance(dockerfile, str):
+			dockerfile = dockerfile[self.short_name]
+
+		dockerfile_path = self._cloned_path / "Dockerfile"
+		with open(dockerfile_path, "w") as f:
+			f.write(dockerfile)
+
+		image, _ = client.images.build(
+			path=str(self._cloned_path),
+			dockerfile=dockerfile_path.name,
+			tag=f"lcb.{self.repo}",
+		)
+
+		return image
+
+	def run_with_docker(
+		self,
+		command: str,
+		image: Optional[docker.models.images.Image] = None,
+	) -> str:
+		"""Run a command in a Docker container with the repository.
+
+		This method runs a command in a Docker container whose image
+		is built using the repository (see `build_docker_image`).
+
+
+		Args:
+			command (str): The command to run in the container.
+			image (Optional[docker.Image]): The Docker image to use.
+				If `None`, the method will first try to find the image
+				with the name of the repository. If not found, it will
+				build a new image using the repository.
+
+		Returns:
+			str: The output of the command.
+
+		Raises:
+			RuntimeError: If the repository is not cloned yet.
+		"""
+		if self._cloned_path is None:
+			raise RuntimeError(
+				"Repository not cloned. Use with-statement to clone repository"
+				" before running commands in Docker."
+			)
+
+		client = docker.from_env()
+
+		if image is None:
+			try:
+				image = client.images.get(f"lcb.{self.repo}")
+			except docker.errors.ImageNotFound:
+				image = self.build_docker_image()
+
+		try:
+			output = client.containers.run(
+				image=image.id,
+				command=command,
+				detach=False,
+				remove=True,
+			)
+			print(output.decode("utf-8"))
+			return output.decode("utf-8")
+		except docker.errors.ContainerError as e:
+			print(e.stderr.decode("utf-8"))
+			return e.stderr.decode("utf-8")
 
 	def _get_issue_comments(
 		self, issue_number: int, wait: int = 1
@@ -289,7 +430,11 @@ class GitHubRepository:
 			traceback (Optional[TracebackType]): The traceback of the
 				exception raised, if any.
 		"""
-		if self._cloned_path and self._cloned_path.exists():
+		if (
+			self._cloned_path
+			and self._cloned_path.exists()
+			and not self.persistent
+		):
 			shutil.rmtree(self._cloned_path)
 
 	@property
