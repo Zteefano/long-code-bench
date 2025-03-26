@@ -34,7 +34,7 @@ Before being able to create a dataset for this task, refer to [this README](src/
 To create a tunable version of a SWE-Bench dataset, run the following command:
 
 ```bash
-pixi r make_swebench_tuned src/long_code_bench/data/tune_swebench.py \
+pixi r make_swebench_tuned \
 	--dataset [dataset_name_or_local_path] \
 	--splits [splits_to_process] \
 	--output_dir [directory_store_dataset] \

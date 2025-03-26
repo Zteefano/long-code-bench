@@ -6,6 +6,7 @@ dependencies = [
     "pyserini>=0.43.0,<0.44",
     "anthropic>=0.45.2,<0.46",
     "datasets>=3.2.0,<4",
+    "google-genai", "anyio==3.6.2",
 ]
 description = "Add a short description here"
 name = "long-code-bench"
@@ -35,6 +36,7 @@ faiss-gpu = "1.8"
 ruff = ">=0.6.7,<0.7"
 setuptools = ">=75.3.0,<76"
 jedi = ">=0.19.2,<0.20"
+pytest = ">=8.3.5,<9"
 
 [tool.pixi.feature.plot.dependencies]
 matplotlib = ">=3.10.0,<4"
@@ -44,7 +46,6 @@ statsmodels = ">=0.14.4,<0.15"
 
 [tool.pixi.feature.tests.dependencies]
 pytest = ">=7.2.2,<8"
-
 
 [tool.pixi.tasks]
 eval = "python eval.py"
