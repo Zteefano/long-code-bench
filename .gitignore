@@ -14,7 +14,9 @@ keys.json
 __pycache__
 
 # Data
+dataset/
 data/
+swe_bench_1M/
 !src/long_code_bench/data
 results*/
 logs/

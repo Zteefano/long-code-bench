@@ -200,7 +200,7 @@ class GitHubRepository:
 				repository. The keys are the issue numbers and the
 				values are the issues themselves.
 		"""
-		url = f"https://api.github.com/repos/{self.repo}/issues?state={state}"
+		url = f"https://api.github.com/repos/{self.repo}/issues?state={state}&per_page=100"
 		headers = {
 			"X-GitHub-Api-Version": "2022-11-28",
 			"Accept": "application/vnd.github+json",

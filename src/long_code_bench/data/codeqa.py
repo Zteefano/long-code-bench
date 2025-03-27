@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 from tqdm.auto import tqdm
 
-import long_code_bench.data.repo as gitrep
+import repo as gitrep
 
 load_dotenv()
 
@@ -112,7 +112,7 @@ stating ONLY the letter associated to the question."""
 	for repo, issues in repo_issues.items():
 		with repos[repo] as cloned_repo:
 			files = cloned_repo.read_files()
-		files = {k: v for k, v in files.items() if "tests" not in k}
+		files = {k: v for k, v in files.items() if "tests" not in k and ".git" not in k}
 		repo_text = "Repository:\n"
 		for file, file_content in files.items():
 			repo_text += (

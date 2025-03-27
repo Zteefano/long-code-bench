@@ -3,8 +3,9 @@ from typing import Optional, TypeVar
 
 import datasets as dts
 import tiktoken
+from transformers import AutoTokenizer
 
-from long_code_bench.data.repo import GitHubRepository
+from src.long_code_bench.data.repo import GitHubRepository
 
 T = TypeVar("T", dts.Dataset, dts.DatasetDict)
 
