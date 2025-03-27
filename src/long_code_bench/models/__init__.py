@@ -1,5 +1,6 @@
-from .anthropic import AnthropicModel
-from .api import APIModel
+# from .anthropic import AnthropicModel
+# from .api import APIModel
 from .base import Model
 from .open import OpenSourceModel
-from .openai import OpenAIModel
+# from .openai import OpenAIModel
+from .vllm import OpenSourceVLLMModel
