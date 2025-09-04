@@ -604,7 +604,11 @@ def main(
 		)
 
 	# clean images + make final report
-	clean_images(client, existing_images, cache_level, clean)
+	try:
+		clean_images(client, existing_images, cache_level, clean)
+	except Exception as e:
+		print(f"Error cleaning images: {e}")
+		traceback.print_exc()
 	return make_run_report(
 		predictions,
 		full_dataset,

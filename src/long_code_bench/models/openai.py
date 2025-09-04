@@ -61,7 +61,6 @@ class OpenAIModel(APIModel):
 		response = self.client.chat.completions.create(
 			messages=[{"role": "user", "content": prompt}],
 			model=self.model_version,
-			max_tokens=self.max_window,
 		)
 		return response.choices[0].message.content or ""
 
@@ -174,9 +173,11 @@ class OpenAIModel(APIModel):
 				job_status.status == "completed" and job_status.output_file_id
 			) or job_status.status == "failed":
 				break
-			await asyncio.sleep(180)
+			await asyncio.sleep(10)
 
-		result_file_id = batch_job.output_file_id
+		result_file_id = self.client.batches.retrieve(
+			batch_job.id
+		).output_file_id
 		if not result_file_id:
 			raise ValueError("Batch job failed to generate output")
 		result = self.client.files.content(result_file_id).content
@@ -191,9 +192,9 @@ class OpenAIModel(APIModel):
 		with open(result_file_name, "r") as file:
 			for line in file:
 				json_object = json.loads(line.strip())
-				results[json_object["task_id"][5:]] = json_object["response"][
-					"body"
-				]["choices"][0]["message"]["content"]
+				results[json_object["custom_id"][5:]] = json_object[
+					"response"
+				]["body"]["choices"][0]["message"]["content"]
 
 		os.remove(temp_file_name)
 

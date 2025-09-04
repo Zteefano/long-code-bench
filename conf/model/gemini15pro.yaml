@@ -1,0 +1,2 @@
+_target_: src.long_code_bench.models.GeminiAIModel
+model_version: gemini-1.5-pro

@@ -262,6 +262,7 @@ parse_log_pydicom = parse_log_pytest_options
 parse_log_requests = parse_log_pytest_v2
 parse_log_pylint = parse_log_pytest_options
 parse_pydantic = parse_log_pytest_v2
+parse_cffi = parse_log_pytest_v2
 
 parse_log_astropy = parse_log_pytest_v2
 parse_log_scikit = parse_log_pytest_v2
@@ -288,4 +289,11 @@ MAP_REPO_TO_PARSER = {
 	"sphinx-doc/sphinx": parse_log_sphinx,
 	"sympy/sympy": parse_log_sympy,
 	"pydantic/pydantic": parse_pydantic,
+	"python-cffi/cffi": parse_cffi,
+	"chardet/chardet": parse_log_pytest_v2,
+	"eliben/pycparser": parse_log_pytest_v2,
+	"psycopg/psycopg2": parse_log_pytest_v2,
+	"giampaolo/psutil": parse_log_pytest_v2,
+	"gitpython-developers/GitPython": parse_log_pytest_v2,
+	"python-poetry/poetry-core": parse_log_pytest_v2,
 }

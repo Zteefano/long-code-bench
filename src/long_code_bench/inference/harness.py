@@ -18,6 +18,7 @@ def main(
 	max_workers: int,
 	run_id: str,
 	output_file: str,
+	timeout: int = 1_800,
 ) -> None:
 	"""Evaluate predictions for a given tuned dataset.
 
@@ -31,6 +32,8 @@ def main(
 		run_id (str): Unique identifier for the evaluation run.
 		output_file (str): Path to the output file where results will be
 			saved.
+		timeout (int): Timeout for the evaluation run in seconds. By
+			default, 1,800 seconds (30 minutes).
 	"""
 	tmp_dir = os.getenv("TMPDIR", "/tmp")
 
@@ -38,10 +41,17 @@ def main(
 	with open(predictions_path, "r") as f:
 		for line in f:
 			data = json.loads(line)
-			patch_pattern = r"```patch.*?```"
-			match = re.search(patch_pattern, data["generation"], re.DOTALL)
-			if match:
-				data["generation"] = match.group(0)
+			patch_pattern = r"(?:```(?:patch|diff).*?```|<patch>.*?</patch>)"
+
+			try:
+				match = re.search(patch_pattern, data["generation"], re.DOTALL)
+				if match:
+					data["generation"] = match.group(0)
+			except TypeError:
+				data["generation"] = ""
+			except Exception as e:
+				raise e
+
 			predictions[data["num_files"]].append(data)
 
 	results = {}
@@ -64,7 +74,7 @@ def main(
 			run_id=f"{run_id}_{os.path.basename(file).split('.')[0]}",
 			cache_level="env",
 			clean=False,
-			timeout=1_800,
+			timeout=timeout,
 			force_rebuild=False,
 			open_file_limit=4_096,
 			instance_ids=[],
@@ -118,6 +128,12 @@ if __name__ == "__main__":
 		required=True,
 		help="Path to the output file where results will be saved.",
 	)
+	parser.add_argument(
+		"--timeout",
+		type=int,
+		default=1_800,
+		help="Timeout for the evaluation run in seconds (default: 1800).",
+	)
 	args = parser.parse_args()
 
 	main(
@@ -127,4 +143,5 @@ if __name__ == "__main__":
 		max_workers=args.max_workers,
 		run_id=args.run_id,
 		output_file=args.output_file,
+		timeout=args.timeout,
 	)

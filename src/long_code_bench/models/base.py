@@ -16,6 +16,7 @@ class Model(ABC):
 		prompt: str,
 		max_context_length: Optional[int] = None,
 		max_output_length: Optional[int] = None,
+		vs_id: Optional[str] = None,
 	) -> str:
 		"""Generate text given a prompt.
 
@@ -27,6 +28,9 @@ class Model(ABC):
 			max_output_length (Optional[int]): The maximum length of the
 					output text. If `None`, the model can generate text
 					of any length. By default, `None`.
+			vs_id (Optional[str]): The ID of the vector store to use
+				for retrieval-augmented generation (RAG). If `None`, no
+				RAG is performed. By default, `None`.
 
 		Returns:
 			str: The generated text.

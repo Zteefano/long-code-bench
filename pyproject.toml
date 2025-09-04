@@ -6,7 +6,11 @@ dependencies = [
     "pyserini>=0.43.0,<0.44",
     "anthropic>=0.45.2,<0.46",
     "datasets>=3.2.0,<4",
-    "google-genai", "anyio==3.6.2",
+    "google-genai",
+    "anyio==3.6.2",
+    "together>=1.5.5,<2",
+    "langchain>=0.3.25,<0.4",
+    "langchain-openai>=0.3.18,<0.4",
 ]
 description = "Add a short description here"
 name = "long-code-bench"
@@ -32,17 +36,19 @@ swebench = { path = "src/swe_bench", editable = true }
 cuda = { version = "*", channel = "nvidia" }
 pytorch = { version = "2.4.*", channel = "pytorch" }
 pytorch-cuda = { version = "12.1.*", channel = "pytorch" }
-faiss-gpu = "1.8"
+faiss-gpu = "==1.8"
 ruff = ">=0.6.7,<0.7"
 setuptools = ">=75.3.0,<76"
 jedi = ">=0.19.2,<0.20"
 pytest = ">=8.3.5,<9"
+boto3 = ">=1.37.18,<2"
 
 [tool.pixi.feature.plot.dependencies]
 matplotlib = ">=3.10.0,<4"
 datasets = ">=3.2.0,<4"
 plotly = ">=5.24.1,<6"
 statsmodels = ">=0.14.4,<0.15"
+tiktoken = ">=0.9.0,<0.10"
 
 [tool.pixi.feature.tests.dependencies]
 pytest = ">=7.2.2,<8"

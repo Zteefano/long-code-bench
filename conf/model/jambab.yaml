@@ -1,0 +1,2 @@
+_target_: src.long_code_bench.models.BedrockAIModel
+model_version: ai21.jamba-1-5-large-v1:0

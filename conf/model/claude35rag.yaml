@@ -1,6 +1,5 @@
 _target_: src.long_code_bench.models.AnthropicModel
 model_version: claude-3-5-sonnet-20241022
 max_window: 8_192
-vector_store_dir: results/vector_stores
 rag:
-  _target_: src.long_code_bench.rag.rag.RAGSWEBenchPreProcessor
+  _target_: src.long_code_bench.rag.rag.RAGQAPreProcessor

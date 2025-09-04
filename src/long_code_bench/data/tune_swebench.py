@@ -207,11 +207,14 @@ def make_tunable_swebench(  # noqa: C901
 				split_instances[f"{split}-{k}"][instance["instance_id"]]  # type: ignore
 			)
 			if datum is None:
+				print("Skipping instance due to missing fields.")
 				continue
 			datum["num_files"] = k
 			datum["retrieval_strategy"] = retrieval_type
 			for key in columns:
 				split_data[split][key].append(datum[key])
+
+		print(f"Finished processing split {split}.")
 		split_data[split] = dts.Dataset.from_dict(split_data[split])
 
 	data_final = dts.DatasetDict(split_data)

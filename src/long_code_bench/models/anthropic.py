@@ -1,5 +1,6 @@
 import asyncio
 import os
+import time
 from typing import Dict, List, Optional, override
 
 import anthropic
@@ -8,8 +9,11 @@ from anthropic.types.message_create_params import (
 )
 from anthropic.types.messages.batch_create_params import Request
 from dotenv import load_dotenv
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_openai import OpenAIEmbeddings
 
 from src.long_code_bench.models.api import APIModel
+from src.long_code_bench.rag.rag import RAGPreProcessor
 
 load_dotenv()
 
@@ -25,6 +29,13 @@ class AnthropicModel(APIModel):
 			`None`.
 		max_window (int): The maximum window size for the model. By
 			default, `200_000`.
+		rag (Optional[RAGPreProcessor]): An instance of a RAG
+			preprocessor to handle retrieval-augmented generation. If
+			`None`, no RAG preprocessing is performed. By default,
+			`None`.
+		vector_store_dir (Optional[str]): The directory to store the
+			vector stores for RAG. If `None`, a new in-memory vector
+			store is initialized for each prompt. By default, `None`.
 	"""
 
 	def __init__(
@@ -32,6 +43,8 @@ class AnthropicModel(APIModel):
 		model_version: str,
 		api_key: Optional[str] = None,
 		max_window: int = 200_000,
+		rag: Optional[RAGPreProcessor] = None,
+		vector_store_dir: Optional[str] = None,
 	) -> None:
 		self.model_version = model_version
 		self._max_window = max_window
@@ -39,11 +52,15 @@ class AnthropicModel(APIModel):
 		api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
 		self.client: anthropic.Anthropic = anthropic.Anthropic(api_key=api_key)
 
+		self.rag = rag
+		self.vector_store_dir = vector_store_dir
+
 	def generate(
 		self,
 		prompt: str,
 		max_context_length: Optional[int] = None,
 		max_output_length: Optional[int] = None,
+		vs_id: Optional[str] = None,
 	) -> str:
 		"""Generate text given a prompt by making an API call.
 
@@ -55,16 +72,28 @@ class AnthropicModel(APIModel):
 			max_output_length (Optional[int]): The maximum length of the
 				output text. Only present for compatibility, but not
 				used. By default, `None`.
+			vs_id (Optional[str]): The ID of the vector store to use
+				for retrieval-augmented generation (RAG). If `None`, no
+				RAG is performed. By default, `None`.
 
 		Returns:
 			str: The generated text.
 		"""
-		messages = self.client.messages.create(
-			model=self.model_version,
-			max_tokens=self.max_window or 200_000,
-			messages=[{"role": "user", "content": prompt}],
-		)
-		return messages.content[0].text  # type: ignore
+		if self.rag:
+			prompt = self._rag(prompt, vs_id)
+
+		while True:
+			try:
+				messages = self.client.messages.create(
+					model=self.model_version,
+					max_tokens=self.max_window or 200_000,
+					messages=[{"role": "user", "content": prompt}],
+				)
+				return messages.content[0].text or ""
+			except anthropic.RateLimitError:
+				time.sleep(60)
+			except Exception:
+				return ""
 
 	def generate_batch(
 		self,
@@ -173,8 +202,42 @@ class AnthropicModel(APIModel):
 			),
 		)
 
+	def _rag(self, prompt: str, id: str) -> str:
+		"""Processes the prompt with RAG.
+
+		Args:
+			prompt (str): The prompt to generate text from.
+			id (str): The ID associated with the prompt, used for
+				tracking vector stores.
+
+		Returns:
+			str: The new prompt with RAG applied.
+		"""
+		pre_processing = self.rag.preprocess(prompt)
+
+		if os.path.exists(f"{self.vector_store_dir}/{id}.vs"):
+			vector_store = InMemoryVectorStore.load(
+				f"{self.vector_store_dir}/{id}.vs",
+				OpenAIEmbeddings(model="text-embedding-3-large"),
+			)
+		else:
+			vector_store = InMemoryVectorStore(
+				OpenAIEmbeddings(model="text-embedding-3-large")
+			)
+			for doc in pre_processing["documents"]:
+				vector_store.add_documents([doc])
+			vector_store.dump(f"{self.vector_store_dir}/{id}.vs")
+
+		results = vector_store.similarity_search(
+			pre_processing["query"],
+			k=10,
+		)
+		code = "\n".join(doc.page_content for doc in results)
+		prompt = f"{pre_processing['query']}\n\n{code}\n\n{pre_processing['post_prompt']}"  # noqa: E501
+		return prompt
+
 	@property
 	@override
 	def name(self) -> str:
 		"""Name of the model, used for identification."""
-		return self.model_version
+		return self.model_versio

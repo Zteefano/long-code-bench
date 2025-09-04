@@ -12,6 +12,7 @@ keys.json
 
 # Python files
 __pycache__
+.pytest_cache
 
 # Data
 data/
@@ -20,9 +21,13 @@ results*/
 logs/
 repos/
 repos.txt
+None
+LQA
+LongSWE_Bench
 
 # Other
 causal-conv1d/
 mamba/
+plot_scripts/
 eval.sh
 SWE_Eval.*

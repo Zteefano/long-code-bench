@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 import os
 import sys
@@ -27,7 +28,7 @@ def _process_instance(
 	test_patch: str,
 	gold_patch: str,
 	client: docker.DockerClient,
-) -> None:
+) -> Dict[str, str]:
 	log_file = Path(f"/tmp/{instance.instance_id}.log")
 	logger = setup_logger(
 		instance.instance_id,
@@ -90,7 +91,8 @@ def _process_instance(
 	test_output, _, _ = exec_run_with_timeout(
 		container, "/bin/bash /eval.sh", timeout=180
 	)
-	print(test_output)
+	with open("test_output.txt", "w") as f:
+		f.write(test_output)
 
 	pre_gold_tests = MAP_REPO_TO_PARSER[instance.repo](test_output)
 
@@ -129,17 +131,29 @@ def _process_instance(
 		for test in post_gold_tests
 		if post_gold_tests[test] != pre_gold_tests.get(test)
 	}
-	print(f"Diff tests: {diff_tests}")
 
 	cleanup_container(client, container, logger)
 
+	return diff_tests
 
-def build_pre_tests(dataset: List[Dict]) -> None:
+
+def _process_instance_wrapper(args):  # noqa: ANN001, ANN202
+	instance, test_patch, gold_patch, client = args
+	return instance["instance_id"], _process_instance(
+		make_test_spec(instance),
+		test_patch,
+		gold_patch,
+		client,
+	)
+
+
+def build_pre_tests(dataset: List[Dict], output: str) -> None:
 	"""Build images to run tests for instances in the specified dataset.
 
 	Args:
 		dataset (List[Dict]): A list of dictionaries, each containing
 			information about an instance.
+		output (str): The path to save the processed dataset.
 	"""
 	client = docker.from_env()
 
@@ -162,24 +176,38 @@ def build_pre_tests(dataset: List[Dict]) -> None:
 		print(f"Failed to build images for instances: {failed}")
 		return
 
-	for instance_base, swe_instance in zip(
-		processed_dataset, swebench_dataset, strict=True
-	):
-		_process_instance(
-			make_test_spec(swe_instance),
-			instance_base["test_patch"],
-			instance_base["patch"],
-			client,
-		)
+	to_save = {}
+	with concurrent.futures.ThreadPoolExecutor() as executor:
+		futures = {
+			executor.submit(
+				_process_instance_wrapper,
+				(
+					instance_base,
+					instance_base["test_patch"],
+					instance_base["patch"],
+					client,
+				),
+			): instance_base
+			for instance_base in processed_dataset
+		}
+		for future in concurrent.futures.as_completed(futures):
+			instance_id, test_diffs = future.result()
+			print(f"Instance {instance_id} processed.")
+			print(f"Diff tests: {test_diffs}")
+			to_save[instance_id] = test_diffs
+
+	with open(output, "w") as f:
+		json.dump(to_save, f, indent=4)
 
 
 if __name__ == "__main__":
-	if len(sys.argv) != 2:
-		print("Usage: python patch_tests.py <dataset_path>")
+	if len(sys.argv) != 3:
+		print("Usage: python patch_tests.py <dataset_path> <output_path>")
 		sys.exit(1)
 
 	dataset_path = sys.argv[1]
+	output_path = sys.argv[2]
 
 	with open(dataset_path, "r") as f:
 		dataset = json.load(f)
-	build_pre_tests(dataset)
+	build_pre_tests(dataset, output_path)

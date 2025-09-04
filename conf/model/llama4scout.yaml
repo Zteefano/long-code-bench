@@ -1,0 +1,2 @@
+_target_: src.long_code_bench.models.TogetherModel
+model_version: meta-llama/Llama-4-Scout-17B-16E-Instruct

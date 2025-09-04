@@ -1,6 +1,5 @@
 import ast
 import os
-import random
 import shutil
 from collections import defaultdict
 from typing import List, Literal, Tuple, Union
@@ -69,9 +68,18 @@ def mask_definition_in_source(
 			header_end_idx = i
 			break
 
-	header_line = source_lines[start_idx]
-	header_indent = len(header_line) - len(header_line.lstrip())
-	body_indent = " " * (header_indent + 4)
+	# header_line = source_lines[start_idx]
+	# header_indent = len(header_line) - len(header_line.lstrip())
+	# body_indent = " " * (header_indent + 4)
+
+	for i in range(header_end_idx + 1, end_idx + 1):
+		if source_lines[i].strip():
+			first_body_line = source_lines[i]
+			actual_body_indent = len(first_body_line) - len(
+				first_body_line.lstrip()
+			)
+			body_indent = " " * actual_body_indent
+			break
 
 	if def_type == "function":
 		stub_body = [
@@ -90,23 +98,19 @@ def mask_definition_in_source(
 	return new_source_lines
 
 
-def mask_random_definitions(
-	definitions: List[str], num_to_mask: int = 5
-) -> None:
-	"""Mask random definitions in the provided list of files.
+def mask_definitions(definitions: List[str]) -> None:
+	"""Mask definitions in the source files.
+
+	Notice that this function modifies the source files in-place, so it
+	should be used with caution. It does, however, create backups of the
+	files before making any changes.
 
 	Args:
-		definitions (List[str]): List of definitions in the format
-			"file_path::def_name".
-		num_to_mask (int, optional): Number of definitions to mask.
-			Defaults to 5.
+		definitions (List[str]): List of definitions to mask in the
+			format `"file_path::def_name"`.
 	"""
-	selected_entries = random.sample(
-		definitions, min(num_to_mask, len(definitions))
-	)
-
 	file_to_defs = defaultdict(list)
-	for entry in selected_entries:
+	for entry in definitions:
 		try:
 			file_path, def_name = entry.split("::")
 			file_to_defs[file_path].append(def_name)
@@ -136,24 +140,24 @@ def mask_random_definitions(
 			)
 			continue
 
+		success = True
 		nodes.sort(key=lambda x: x[0].lineno, reverse=True)
 		modified_lines = source_lines
 		for node, def_type in nodes:
-			modified_lines = mask_definition_in_source(
-				modified_lines, node, def_type
-			)
+			try:
+				modified_lines = mask_definition_in_source(
+					modified_lines, node, def_type
+				)
+			except UnboundLocalError:
+				with open(file_path, "w", encoding="utf-8") as f:
+					f.write(source_text)
+				print(f"Error masking definition {node.name} in {file_path}")
+				success = False
+				break
+		if not success:
+			continue
 
 		with open(file_path, "w", encoding="utf-8") as f:
 			f.write("".join(modified_lines))
 		masked_names = ", ".join(node.name for node, _ in nodes)
 		print(f"Masked definitions in {file_path}: {masked_names}")
-
-
-if __name__ == "__main__":
-	# Example usage
-	definitions_list = [
-		"file1.py::function1",
-		"file2.py::class1",
-		# Add more definitions as needed
-	]
-	mask_random_definitions(definitions_list, num_to_mask=1)

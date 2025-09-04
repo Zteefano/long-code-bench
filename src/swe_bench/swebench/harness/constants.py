@@ -222,25 +222,149 @@ SPECS_DJANGO.update(
 )
 SPECS_DJANGO["1.9"]["test_cmd"] = TEST_DJANGO_NO_PARALLEL
 
-# SPECS_REQUESTS = {
-#    k: {
-#        "python": "3.9",
-#        "packages": "pytest",
-#        "install": "python -m pip install .",
-#        "test_cmd": TEST_PYTEST,
-#    }
-#    for k in ["0.7", "0.8", "0.9", "0.11", "0.13", "0.14", "1.1", "1.2", "2.0", "2.2"]
-#    + ["2.3", "2.4", "2.5", "2.7", "2.8", "2.9", "2.10", "2.11", "2.12", "2.17"]
-#    + ["2.18", "2.19", "2.22", "2.26", "2.25", "2.27", "2.31", "3.0"]
-# }
-SPECS_REQUESTS = {
-	"2.5.1": {
-		"python": "3.4",
-		"packages": "requirements.txt",
+SPECS_CFFI = {
+	"1.17": {
+		"python": "3.12",
+		"packages": "",
 		"install": "python -m pip install -e .",
-		"test_cmd": "python -m pytest -rA --tb=no -p no:cacheprovider -v",
-	},
+		"pip_packages": ["pytest"],
+		"test_cmd": "pytest -rA --tb=short",
+	}
 }
+
+SPECS_CHARDET = {
+	k: {
+		"python": "3.6",
+		"packages": "",
+		"install": "python -m pip install -e .",
+		"pip_packages": ["pytest"],
+		"test_cmd": "pytest -rA --tb=short",
+	}
+	for k in ["4.0", "5.0"]
+}
+
+SPECS_PYCPARSER = {
+	k: {
+		"python": "3.9",
+		"packages": "",
+		"install": "pip install -e .",
+		"pip_packages": ["pytest"],
+		"test_cmd": "python -m pytest -v -rA",
+	}
+	for k in ["2.22", "2.21"]
+}
+SPECS_PYCPARSER.update(
+	{
+		str(k): {
+			"python": "2.7",
+			"packages": "",
+			"install": "pip install -e .",
+			"pip_packages": ["pytest"],
+			"test_cmd": "python -m pytest -v -rA",
+		}
+		for k in ["2.20", "2.19", "2.18", "2.14", "2.10"]
+	}
+)
+SPECS_PSYCOPG2 = {
+	"1": {
+		"python": "3.9",
+		"packages": "",
+		"pre-install": "apt-get update && apt-get install build-essential && apt update && apt install -y libpq-dev",
+		"install": "python setup.py build && python setup.py install",
+		"pip_packages": ["pytest"],
+		"test_cmd": "python -m pytest -v -rA",
+	}
+}
+SPECS_PSUTIL = {
+	k: {
+		"python": "3.6",
+		"packages": "",
+		"install": "pip install -e .",
+		"pip_packages": ["pytest"],
+		"test_cmd": "python -m pytest -v -rA",
+	}
+	for k in ["5.9.8", "5.9.5", "5.8.1", "5.8.0", "5.7.0", "5.6.2", "5.4.8"]
+}
+SPECS_PSUTIL.update(
+	{
+		k: {
+			"python": "3.5",
+			"packages": "",
+			"install": "pip install -e .",
+			"pip_packages": ["pytest"],
+			"test_cmd": "python -m pytest -v -rA",
+		}
+		for k in ["5.4.0", "5.1.0"]
+	}
+)
+SPECS_GITPYTHON = {
+	"1": {
+		"python": "3.8",
+		"packages": ["test-requirements.txt"],
+		"install": "python setup.py install; yes | ./init-tests-after-clone.sh",
+		"pre_install": "apt-get update && apt-get install -y git",
+		"pip_packages": ["pytest"],
+		"test_cmd": "pytest -v -rA",
+	}
+}
+SPECS_POETRY = {
+	"1": {
+		"python": "3.9",
+		"packages": "",
+		"install": "pip install -e .",
+		"pre_install": "apt-get update && apt-get install -y git",
+		"pip_packages": [
+			"pytest",
+			"virtualenv",
+			"tomli_w",
+			"build",
+			"pytest-mock",
+		],
+		"test_cmd": "pytest -v -rA",
+	}
+}
+
+SPECS_REQUESTS = {
+	k: {
+		"python": "3.9",
+		"packages": "pytest",
+		"install": "python -m pip install .",
+		"test_cmd": TEST_PYTEST,
+	}
+	for k in [
+		"0.7",
+		"0.8",
+		"0.9",
+		"0.11",
+		"0.13",
+		"0.14",
+		"1.1",
+		"1.2",
+		"2.0",
+		"2.2",
+	]
+	+ [
+		"2.3",
+		"2.4",
+		"2.5",
+		"2.7",
+		"2.8",
+		"2.9",
+		"2.10",
+		"2.11",
+		"2.12",
+		"2.17",
+	]
+	+ ["2.18", "2.19", "2.22", "2.26", "2.25", "2.27", "2.31", "3.0"]
+}
+# SPECS_REQUESTS = {
+# "2.5.1": {
+# "python": "3.4",
+# "packages": "requirements.txt",
+# "install": "python -m pip install -e .",
+# "test_cmd": "python -m pytest -rA --tb=no -p no:cacheprovider -v",
+# },
+# }
 
 SPECS_PYDANTIC = {
 	"2.8.2": {
@@ -248,20 +372,26 @@ SPECS_PYDANTIC = {
 		"packages": "",
 		"install": "python -m pip install .",
 		"pip_packages": [
-			"pytest",
-			# "pytest-benchmark",
-			# "dirty_equals",
-			# "pytz",
-			# "cloudpickle",
-			# "pytest_example",
-			# "rich",
-			# "pydantic[email]",
-			# "faker",
-			# "pytest-mock",
-			# "devtools",
-			# "sqlalchemy",
+			"typing-extensions>=4.6.1",
+			"annotated-types>=0.4.0",
+			"pydantic-core==2.20.1",
+			"email-validator>=2.0.0",
+			"cloudpickle",
+			"coverage[toml]",
+			"dirty-equals",
+			"eval-type-backport",
+			"pytest>=8.2.2",
+			"pytest-mock",
+			"pytest-examples",
+			"faker>=18.13.0",
+			"pytest-benchmark>=4.0.0",
+			"pytest-codspeed~=2.2.0",
+			"packaging>=23.2",
+			"pytz",
+			"mypy~=1.1.1",
+			"pydantic-settings>=2.0.0",
 		],
-		"test_cmd": "pytest -rA",
+		"test_cmd": "pytest -rA --test-mypy",
 	},
 	"2.9.0": {
 		"python": "3.12",
@@ -1195,6 +1325,13 @@ MAP_REPO_VERSION_TO_SPECS = {
 	"swe-bench/humaneval": SPECS_HUMANEVAL,
 	"sympy/sympy": SPECS_SYMPY,
 	"pydantic/pydantic": SPECS_PYDANTIC,
+	"python-cffi/cffi": SPECS_CFFI,
+	"chardet/chardet": SPECS_CHARDET,
+	"eliben/pycparser": SPECS_PYCPARSER,
+	"psycopg/psycopg2": SPECS_PSYCOPG2,
+	"giampaolo/psutil": SPECS_PSUTIL,
+	"gitpython-developers/GitPython": SPECS_GITPYTHON,
+	"python-poetry/poetry-core": SPECS_POETRY,
 }
 
 # Constants - Repository Specific Installation Instructions
@@ -1216,6 +1353,13 @@ MAP_REPO_TO_REQS_PATHS = {
 	"sympy/sympy": ["requirements-dev.txt", "requirements-test.txt"],
 	"psf/requests": ["requirements.txt"],
 	"pydantic/pydantic": ["none"],
+	"python-cffi/cffi": ["none"],
+	"chardet/chardet": ["none"],
+	"eliben/pycparser": ["none"],
+	"psycopg/psycopg2": ["none"],
+	"giampaolo/psutil": ["none"],
+	"gitpython-developers/GitPython": ["test-requirements.txt"],
+	"python-poetry/poetry-core": ["none"],
 }
 
 

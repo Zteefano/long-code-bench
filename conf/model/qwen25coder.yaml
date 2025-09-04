@@ -1,0 +1,2 @@
+_target_: src.long_code_bench.models.TogetherModel
+model_version: Qwen/Qwen2.5-Coder-32B-Instruct

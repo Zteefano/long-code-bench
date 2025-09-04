@@ -1,6 +1,6 @@
-# Benchmarking LCLMs for Coding
+# LongCodeBench
 
-Repository to develop a benchmkark to test Long Context Language Models (LCLMs) coding capabilities.
+This repository contains the codebase for building the [LongCodeBench](https://arxiv.org/abs/2505.07897v2) benchmark and evaluating models on it.
 
 ## Initialization
 
@@ -62,7 +62,7 @@ For running an evaluation, run the `eval` task with Pixi (or the `eval.py` scrip
 
 ```bash
 pixi r eval \
-	dataset=swebench_verified_tuned \
+	dataset=[dataset_file] \
 	model=gpt4omini \
 	output=[results_file_path]
 ```
@@ -93,7 +93,7 @@ pixi r make_qa \
 
 Here is the information about each argument.
 
-* The parameter `repoos` specifies a **file** with the name of a repository on each line. The name are written in the format `owner/repo_name` (an example is provided below).
+* The parameter `repos` specifies a **file** with the name of a repository on each line. The name are written in the format `owner/repo_name` (an example is provided below).
 * The parameter `output` specifies a **directory** where the dataset will be stored, together with intermediary files to avoid repeating GitHub API or OpenAI calls for repeated runs. In particular, if the directory already exists and it already contains some of the intermediary files (under the name `github_issues.json` and `github_issues_qa.json`), the task will skip the step that creates them.
 * The paramter `format` defines the format of the prompts in which the questions are presented. The possible options are `post` (the default one), `pre`, and `without`.
 
@@ -103,4 +103,35 @@ Here is an example of a repositories list file:
 yaml/pyyaml
 pypa/virtualenv
 jaraco/zipp
+```
+
+## Evaluating CodeQA
+
+The same task (or script) for running an evaluation on LongSWEBench can be used to run it on LongCodeQA, as long as the dataset files (e.g., `conf/dataset/codeqa/32K.yaml`) have the `task_type` property set to `longcodeqa`.
+
+```bash
+pixi r eval \
+	dataset=[dataset_file] \
+	model=gpt4omini \
+	output=[results_file_path]
+```
+
+Contrary to LongSWEBench, no additional step is needed and the output file will store the final accuracy of the evaluation automatically.
+
+## SWEBench
+
+This repository relies on the [SWEBench](https://www.swebench.com/) work by Carlos E. Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik Narasimhan1. Their repository is cloned and copied in the `src/swe_bench` directory, to which we applied changes to fit our work.
+
+## Citations
+
+```
+@misc{rando2025longcodebenchevaluatingcodingllms,
+      title={LongCodeBench: Evaluating Coding LLMs at 1M Context Windows}, 
+      author={Stefano Rando and Luca Romani and Alessio Sampieri and Luca Franco and John Yang and Yuta Kyuragi and Fabio Galasso and Tatsunori Hashimoto},
+      year={2025},
+      eprint={2505.07897},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2505.07897}, 
+}
 ```
