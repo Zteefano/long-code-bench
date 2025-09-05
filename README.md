@@ -1,6 +1,6 @@
 # LongCodeBench
 
-This repository contains the codebase for building the [LongCodeBench](https://arxiv.org/abs/2505.07897v2) benchmark and evaluating models on it.
+This repository contains the codebase for building the [LongCodeBench](https://arxiv.org/abs/2505.07897v2) benchmark and evaluating models on it. The dataset is [accessible on HuggingFace](https://huggingface.co/datasets/Steefano/LCB).
 
 ## Initialization
 
