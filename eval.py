@@ -8,7 +8,7 @@ from omegaconf import DictConfig
 
 from src.long_code_bench.inference.codeqa_eval import LongCodeQAEvaluator
 from src.long_code_bench.inference.hf_eval import DatasetsEvaluator
-from src.long_code_bench.models import APIModel, Model
+from src.long_code_bench.models import Model, APIModel
 
 load_dotenv()
 

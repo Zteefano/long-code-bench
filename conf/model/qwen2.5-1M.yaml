@@ -1,0 +1,2 @@
+_target_: src.long_code_bench.models.OpenSourceVLLMModel
+hf_path: /media/nvme_4tb/lucaromani/.cache/hub/models--Qwen--Qwen2.5-14B-Instruct-1M/snapshots/620fad32de7bdd2293b3d99b39eba2fe63e97438
